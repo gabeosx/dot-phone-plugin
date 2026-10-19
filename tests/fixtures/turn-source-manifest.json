@@ -1,0 +1,24 @@
+{
+  "synthetic": true,
+  "generator": "Installed macOS say, Samantha voice, 200 words per minute; afconvert PCM16 mono 8000 Hz",
+  "clips": {
+    "turn-source-stop.wav": {
+      "text": "stop",
+      "sha256": "1063fc4504660b5e793242fb1029679a56adbc47abf206a06b1d6bdf2134830a",
+      "sample_count": 4961,
+      "sample_rate": 8000,
+      "channels": 1,
+      "sample_width": 2,
+      "envelope": {
+        "method": "10 ms RMS envelope of a known clean synthetic utterance; not general VAD",
+        "rms_threshold_exclusive_pcm16": 80,
+        "bin_width_ms": 10,
+        "boundary_uncertainty_ms": 10,
+        "onset_ms": 70.0,
+        "end_ms": 400.0,
+        "active_bin_duration_ms": 280.0,
+        "not_phoneme_ground_truth": true
+      }
+    }
+  }
+}

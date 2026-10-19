@@ -1,0 +1,65 @@
+# Private controller integration staging. Dialing is disabled by default.
+services:
+  phone-app:
+    restart: unless-stopped
+    command: [python, -m, dots_phone]
+    environment:
+      DOTS_PHONE_PROFILE: production
+      DOTS_PHONE_DRY_RUN: "${DOTS_PHONE_STAGE_DRY_RUN:-true}"
+      DOTS_PHONE_VOICE_BACKEND: pipecat
+      DOTS_PHONE_PIPECAT_ENGINE: realtime
+      DOTS_PHONE_PIPECAT_REALTIME_MODEL: "${DOTS_PHONE_STAGE_REALTIME_MODEL:-gpt-realtime-2.1}"
+      # Exact resource identifier returned by ChatGPT's tunnel discovery.
+      DOTS_PHONE_MCP_RESOURCE_URL: "https://tunnel-service.gateway.unified-0.internal.api.openai.org/v1/mcp/${DOTS_PIPECAT_TUNNEL_ID:?Existing private tunnel required}"
+      DOTS_PHONE_MCP_METADATA_BASE_URL: http://phone-app:8000
+      DOTS_PHONE_PUBLIC_BASE_URL: "${DOTS_PHONE_STAGE_OWNER_ORIGIN:?Verified owner origin required}"
+      DOTS_PHONE_MEDIA_BASE_URL: "${DOTS_PHONE_STAGE_MEDIA_ORIGIN:?Verified media origin required}"
+      DOTS_PHONE_ALLOWED_TEST_NUMBERS: "${DOTS_PHONE_STAGE_ALLOWED_NUMBERS:-}"
+      DOTS_PHONE_TWILIO_PHONE_NUMBER: "${DOTS_PHONE_TWILIO_PHONE_NUMBER:-}"
+      DOTS_PHONE_CALLBACK_HOSTS: "chatgpt.com,connectors.api.openai.com"
+      # Exact callback observed in the replacement connector's OAuth settings.
+      DOTS_PHONE_OAUTH_REDIRECT_URIS: "${DOTS_PHONE_OAUTH_REDIRECT_URIS:?Exact OAuth callback URLs required}"
+      DOTS_PHONE_MAX_CALL_SECONDS: "${DOTS_PHONE_STAGE_MAX_CALL_SECONDS:-90}"
+      DOTS_PHONE_CALL_STATE_WAIT_SECONDS: "8"
+      DOTS_PHONE_TRACE_REALTIME_STAGES: "${DOTS_PHONE_STAGE_TRACE_REALTIME_STAGES:-false}"
+      DOTS_PHONE_RETAIN_TRANSCRIPT: "${DOTS_PHONE_STAGE_RETAIN_TRANSCRIPT:-true}"
+      DOTS_PHONE_RETAIN_RECORDING: "${DOTS_PHONE_STAGE_RETAIN_RECORDING:-true}"
+      DOTS_PHONE_PIPECAT_OWNED_DTMF: "${DOTS_PHONE_STAGE_OWNED_DTMF:-false}"
+      DOTS_PHONE_ACCOUNT_TASKS: "${DOTS_PHONE_STAGE_ACCOUNT_TASKS:-false}"
+      DOTS_PHONE_PIPECAT_ACCOUNT_DTMF: "${DOTS_PHONE_STAGE_ACCOUNT_DTMF:-false}"
+    secrets: [runtime]
+    volumes: [supervision-stage-state:/data]
+  tunnel-client:
+    restart: unless-stopped
+    command:
+      - run
+      - "--control-plane.tunnel-id=${DOTS_PIPECAT_TUNNEL_ID:?Existing private tunnel required}"
+      - --control-plane.api-key=file:/run/secrets/tunnel-key
+      - --mcp.server-url=http://phone-app:8000/mcp
+      - --health.listen-addr=127.0.0.1:8080
+      - "--mcp.oauth-trusted-origin=${DOTS_PHONE_STAGE_OWNER_ORIGIN}"
+      # Only the configured private MCP origin is admitted by OAuth discovery.
+      - --harpoon.allow-plaintext-http
+      - "--harpoon.hosts-include-regex=^phone-app$$"
+  owner-tunnel:
+    image: cloudflare/cloudflared:2026.10.0
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [owner-edge]
+    command: [tunnel, --no-autoupdate, --url, "http://owner-ingress:8000"]
+  controller-media-tunnel:
+    image: cloudflare/cloudflared:2026.10.0
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [media-edge]
+    command: [tunnel, --no-autoupdate, --url, "http://media-ingress:8000"]
+secrets:
+  runtime: {file: ../../.secrets/pipecat-phone-runtime.json}
+volumes:
+  supervision-stage-state:

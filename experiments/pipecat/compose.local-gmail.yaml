@@ -1,0 +1,7 @@
+# Opt-in, call-bound file transport. No extra network listener or credentials.
+services:
+  phone-app:
+    environment:
+      DOTS_PHONE_LOCAL_GMAIL_WORKER_DIRECTORY: /worker
+    volumes:
+      - ${DOTS_PHONE_LOCAL_GMAIL_WORKER_HOST_DIRECTORY:?Private worker directory required}:/worker

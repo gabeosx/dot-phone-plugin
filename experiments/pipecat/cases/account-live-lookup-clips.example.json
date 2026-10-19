@@ -1,0 +1,10 @@
+{
+  "menu-2": "Welcome to the owned loyalty account test line. For reservations press one. For your rewards balance press two. To redeem points press eight.",
+  "menu-5": "Welcome to the owned loyalty account test line. For reservations press one. For your rewards balance press five. To redeem points press eight.",
+  "menu-7": "Welcome to the owned loyalty account test line. For reservations press one. For your rewards balance press seven. To redeem points press eight.",
+  "verification": "For identification purposes, please enter your HarborStay Rewards number, followed by the pound key.",
+  "hold": "Thank you. Please hold while I connect you to account service.",
+  "agent": "Hello, this is HarborStay Rewards test account service. Who are you assisting?",
+  "profile": "For identification, could you confirm your home mailing address, including the ZIP code?",
+  "balance": "Thank you, I have that response. For this mock account, your current available balance is sixty one thousand five hundred seventy nine points. Another seven hundred twenty points are pending and are excluded from the available balance. No account changes have been made. Thank you, goodbye."
+}

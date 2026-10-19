@@ -1,0 +1,23 @@
+{
+  "synthetic": true,
+  "generation": "Retained local macOS voice fixtures at one-eighth PCM gain before PCMU encoding. No new synthesis, provider request, or recorded human audio.",
+  "detector_accuracy_claim": false,
+  "clips": {
+    "quiet-continuation.pcmu": {
+      "sha256": "202f785e4e8ea8641c4df082ff3a6cba3fd1861a7949a8169aa7bec5768f15a6",
+      "format": "PCMU 8000 Hz mono",
+      "bytes": 31840,
+      "milliseconds": 3980.0,
+      "source_file": "story-gain-one-eighth.pcmu",
+      "description": "I could not hear that, so please repeat who you are and what you are calling about."
+    },
+    "quiet-interruption.pcmu": {
+      "sha256": "29c78249dfdee1542c5c1024ea294ea50c08a5b8d9b5e52b32fb63215095cb46",
+      "format": "PCMU 8000 Hz mono",
+      "bytes": 44247,
+      "milliseconds": 5530.875,
+      "source_file": "interrupt-gain-one-eighth.pcmu",
+      "description": "Retained authored directed-interruption control; exact wording is documented in original synthetic fixture metadata."
+    }
+  }
+}

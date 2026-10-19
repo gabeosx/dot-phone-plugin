@@ -1,0 +1,6 @@
+# Opt-in, temporary IVR-only testing. Omit this overlay to disable for new calls.
+services:
+  phone-app:
+    environment:
+      DOTS_PHONE_TEST_STOP_ON_HUMAN: "true"
+      DOTS_PHONE_TEST_RESPONSE_LIMIT: "${DOTS_PHONE_TEST_RESPONSE_LIMIT:-5}"

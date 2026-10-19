@@ -1,0 +1,20 @@
+# Apply after verifying the separate public owner/media origins and owned route.
+services:
+  phone-app:
+    environment:
+      DOTS_PHONE_PROFILE: production
+      DOTS_PHONE_DRY_RUN: "${DOTS_PHONE_DRY_RUN:-true}"
+      DOTS_PHONE_VOICE_BACKEND: pipecat
+      DOTS_PHONE_PIPECAT_ENGINE: "${DOTS_PHONE_PIPECAT_ENGINE:-live}"
+      DOTS_PHONE_PUBLIC_BASE_URL: "${DOTS_PHONE_PUBLIC_BASE_URL:?Verified owner HTTPS origin required}"
+      DOTS_PHONE_MEDIA_BASE_URL: "${DOTS_PHONE_MEDIA_BASE_URL:?Verified media HTTPS origin required}"
+      DOTS_PHONE_ALLOWED_TEST_NUMBERS: "${DOTS_PHONE_ALLOWED_TEST_NUMBERS:-}"
+      DOTS_PHONE_TWILIO_PHONE_NUMBER: "${DOTS_PHONE_TWILIO_PHONE_NUMBER:-}"
+      DOTS_PHONE_CALLBACK_HOSTS: "${DOTS_PHONE_CALLBACK_HOSTS:?Verified ChatGPT callback hosts required}"
+      DOTS_PHONE_OAUTH_REDIRECT_URIS: "${DOTS_PHONE_OAUTH_REDIRECT_URIS:?Verified OAuth redirect required}"
+    secrets: [runtime]
+    volumes: [pipecat-production-state:/data]
+secrets:
+  runtime: {file: ../../.secrets/pipecat-phone-runtime.json}
+volumes:
+  pipecat-production-state:

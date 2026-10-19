@@ -1,0 +1,9 @@
+services:
+  phone-app:
+    environment:
+      DOTS_PHONE_LOCAL_CONTEXT_WORKER_DIRECTORY: /worker
+      DOTS_PHONE_DECISION_TIMEOUT_SECONDS: "30"
+      DOTS_PHONE_MAX_CALL_SECONDS: "180"
+      DOTS_PHONE_RETAIN_TRANSCRIPT: "true"
+    volumes:
+      - ${DOTS_PHONE_LOCAL_CONTEXT_WORKER_HOST_DIRECTORY:?Private context worker directory required}:/worker

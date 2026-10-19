@@ -1,0 +1,33 @@
+{
+  "synthetic": true,
+  "generation": "macOS local say Samantha at 200 words/minute; afconvert PCM16 mono 8000 Hz; resampled to fixed test durations. No provider call.",
+  "native_classifier_exercised": false,
+  "clips": {
+    "synthetic-question.wav": {
+      "text": "Hi, I am an AI assistant. What time is dinner?",
+      "sha256": "6acfb6910d18cd0af831d25e192647bd48008ae0071ed66de97aac5b0ce38210",
+      "rate": 8000,
+      "frames": 28160,
+      "channels": 1,
+      "sample_width": 2,
+      "independent_offline_asr_alignment": {
+        "model": "small.en, cached; no prompt; network blocked",
+        "final_question_start_seconds": 2.28,
+        "time_word_start_seconds": 2.44,
+        "time_word_end_seconds": 2.72,
+        "dinner_word_start_seconds": 2.92,
+        "dinner_word_end_seconds": 3.1,
+        "injection_after_carrier_audio_seconds": 2.64,
+        "limitation": "ASR word alignment, not phoneme ground truth. Injection is scheduled by sent carrier bytes, not receiving audibility."
+      }
+    },
+    "synthetic-recovery.wav": {
+      "text": "An AI assistant asking what time dinner is.",
+      "sha256": "7b12841e9845096dfef2a871097abd42d2c171aca149424ee64d5e30b01a951c",
+      "rate": 8000,
+      "frames": 31360,
+      "channels": 1,
+      "sample_width": 2
+    }
+  }
+}

@@ -1,0 +1,2443 @@
+[
+  {
+    "id": "retail_order_tracking",
+    "domain": "retail",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "retail"
+    ],
+    "default_facts": false,
+    "purpose": "Find the current delivery status and expected delivery date for my order.",
+    "facts": {
+      "owner_name": "Samira El-Amin",
+      "order_number": "A17B00"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the current delivery status and expected delivery date for my order."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "Please say the account holder name and the order number together.",
+        "expect": {
+          "speech_required": true,
+          "speech_matches": [
+            "Samira"
+          ],
+          "spoken_identifier": "A17B00",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Order A17B00 is in transit and is expected October 19. That completes your tracking inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "in transit",
+        "October 19"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "parcel_missing_investigation",
+    "domain": "delivery",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "delivery",
+      "tool_lookup",
+      "lookup_success"
+    ],
+    "default_facts": false,
+    "purpose": "Check the status of my missing-parcel investigation.",
+    "facts": {
+      "owner_name": "Dara Okafor",
+      "source_record_key": "parcel_missing_investigation"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Check the status of my missing-parcel investigation."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your case number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "0076102",
+          "ended": false,
+          "tools": [
+            {
+              "name": "consult_call_reasoner",
+              "arguments": {}
+            }
+          ]
+        }
+      },
+      {
+        "recipient": "Investigation 0076102 remains open. The next update is due October 21; the parcel has not been located. That completes the status check.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "remains open",
+        "October 21"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "case_number",
+        "statuses": [
+          "ok"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "parcel_missing_investigation",
+        "field": "case_number",
+        "responses": [
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "0076102",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 500
+      }
+    ]
+  },
+  {
+    "id": "refund_pending_not_paid",
+    "domain": "retail",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "retail",
+      "partial_answer",
+      "unresolved"
+    ],
+    "default_facts": false,
+    "purpose": "Find whether my refund has actually been paid and when to expect it.",
+    "facts": {
+      "owner_name": "Ben Park",
+      "order_number": "602190"
+    },
+    "completion_criteria": [
+      {
+        "id": "refund_status",
+        "description": "Determine whether the refund has been paid."
+      },
+      {
+        "id": "payment_timing",
+        "description": "Find when the refund payment is expected."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your order number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "602190",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Your refund is pending approval and has not been paid. A decision is expected October 22.",
+        "expect": {
+          "speech_matches": [
+            "payment|when|window|date"
+          ],
+          "ended": false
+        }
+      },
+      {
+        "recipient": "An expected payment date or payment window is not available before approval. I cannot provide any further payment-timing information.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "unresolved"
+              }
+            }
+          ],
+          "outcome": "unresolved",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "unresolved",
+      "confirmed_contains": [
+        "not been paid",
+        "October 22"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "return_window_closed",
+    "domain": "retail",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "retail"
+    ],
+    "default_facts": false,
+    "purpose": "Find the return eligibility and available next steps for my unopened headphones.",
+    "facts": {
+      "owner_name": "Ana Silva",
+      "order_number": "881304"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the return eligibility and available next steps for my unopened headphones."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your order number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "881304",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "The standard return window closed October 10. A warranty review is available; no return or refund has been authorized. That completes the policy inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "closed October 10",
+        "warranty review"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "warranty_serial_suffix",
+    "domain": "warranty",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "warranty"
+    ],
+    "default_facts": false,
+    "purpose": "Check whether my appliance is covered by the extended warranty.",
+    "facts": {
+      "owner_name": "Evan Brooks",
+      "serial_number": "SN004412"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Check whether my appliance is covered by the extended warranty."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "For verification, please say only the last six digits of your appliance serial number.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "004412",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Serial SN004412 is covered by the extended warranty for parts until June 30, 2027. Labor is excluded. That completes this coverage inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "extended warranty",
+        "June 30, 2027",
+        "Labor is excluded"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "billing_duplicate_charge",
+    "domain": "billing",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "billing"
+    ],
+    "default_facts": false,
+    "purpose": "Get an explanation for the duplicate invoice charge without making a payment.",
+    "facts": {
+      "owner_name": "Mina Patel",
+      "invoice_number": "INV7012"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Get an explanation for the duplicate invoice charge without making a payment."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "I can submit a 20 dollar expedited review fee. Would you like me to charge it?",
+        "expect": {
+          "speech_matches": [
+            "no|decline|without|do not|don.t"
+          ],
+          "ended": false
+        }
+      },
+      {
+        "recipient": "What is your invoice number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "INV7012",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Invoice INV7012 contains a duplicate 48 dollar service charge caused by a processing retry. The duplicate is under review and no credit has yet been posted. That completes the explanation.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "duplicate 48 dollar",
+        "processing retry",
+        "no credit"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "subscription_cancellation_terms",
+    "domain": "subscription",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "subscription"
+    ],
+    "default_facts": false,
+    "purpose": "Find the cancellation deadline and any fee; do not cancel the subscription.",
+    "facts": {
+      "owner_name": "Theo Martin",
+      "account_number": "702001"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the cancellation deadline and any fee; do not cancel the subscription."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "Do you want me to cancel your subscription now?",
+        "expect": {
+          "speech_matches": [
+            "no|do not|don.t|only|terms"
+          ],
+          "ended": false
+        }
+      },
+      {
+        "recipient": "What is your account number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "702001",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Cancel by October 25 to avoid renewal. There is no cancellation fee. Your subscription remains active; no change was made. That completes this terms inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "October 25",
+        "remains active"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "mobile_remaining_data",
+    "domain": "telecom",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "telecom"
+    ],
+    "default_facts": false,
+    "purpose": "Find my remaining high-speed mobile data for the current cycle.",
+    "facts": {
+      "owner_name": "Cora Li",
+      "account_number": "005512"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find my remaining high-speed mobile data for the current cycle."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "Your usage so far is 12 gigabytes. Is that everything you needed?",
+        "expect": {
+          "speech_required": true,
+          "speech_matches": [
+            "remaining|left|available"
+          ],
+          "forbidden_tools": [
+            "finish_call"
+          ],
+          "ended": false
+        }
+      },
+      {
+        "recipient": "What is your account number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "005512",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "You have 3.5 gigabytes of high-speed data remaining this cycle. The 12 gigabytes mentioned earlier was usage, not remaining data. That completes this inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "3.5 gigabytes",
+        "remaining"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "internet_outage_and_eta",
+    "domain": "telecom",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "telecom"
+    ],
+    "default_facts": false,
+    "purpose": "Find whether my address is affected by the outage and the estimated restoration time.",
+    "facts": {
+      "owner_name": "Imani Cole",
+      "postal_code": "10027"
+    },
+    "completion_criteria": [
+      {
+        "id": "outage",
+        "description": "Confirm whether the address is affected by an outage."
+      },
+      {
+        "id": "restoration",
+        "description": "Obtain the estimated restoration time and its certainty."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your postal code? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "10027",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Your address is affected by the network outage. Estimated restoration is 8 PM Eastern today, not a guarantee. That completes this outage inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "affected",
+        "8 PM Eastern"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "utility_last_payment",
+    "domain": "utilities",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "utilities",
+      "tool_lookup",
+      "lookup_retry"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm my most recent utility payment amount and posting date.",
+    "facts": {
+      "owner_name": "Pavel Novak",
+      "source_record_key": "utility_last_payment"
+    },
+    "completion_criteria": [
+      {
+        "id": "amount",
+        "description": "Confirm the most recent utility payment amount."
+      },
+      {
+        "id": "posted",
+        "description": "Confirm its posting date."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your account number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "0009918",
+          "ended": false,
+          "tools": [
+            {
+              "name": "consult_call_reasoner",
+              "arguments": {}
+            }
+          ]
+        }
+      },
+      {
+        "recipient": "The most recent payment was 92 dollars, posted October 14. No payment was taken during this call. That completes this payment-history inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "92 dollars",
+        "October 14"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "account_number",
+        "statuses": [
+          "timeout",
+          "ok"
+        ],
+        "min_calls": 2
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "utility_last_payment",
+        "field": "account_number",
+        "responses": [
+          {
+            "status": "timeout",
+            "records": []
+          },
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "0009918",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "flight_departure_status",
+    "domain": "travel",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "travel"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm the current departure time and gate for my booked flight.",
+    "facts": {
+      "owner_name": "Nadia Rahman",
+      "booking_reference": "ZQ6M2B"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Confirm the current departure time and gate for my booked flight."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your booking reference? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "ZQ6M2B",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "The flight now departs at 6:40 PM from gate C12. This replaces the original 5:55 PM departure. That completes this flight-status inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "6:40 PM",
+        "C12"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "baggage_trace_status",
+    "domain": "travel",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "travel",
+      "tool_lookup",
+      "lookup_success"
+    ],
+    "default_facts": false,
+    "purpose": "Check the latest status and next update for my delayed bag.",
+    "facts": {
+      "owner_name": "Luis Vega",
+      "source_record_key": "baggage_trace_status"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Check the latest status and next update for my delayed bag."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your file reference? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "BAG9204",
+          "ended": false,
+          "tools": [
+            {
+              "name": "consult_call_reasoner",
+              "arguments": {}
+            }
+          ]
+        }
+      },
+      {
+        "recipient": "Your bag has been located at the transfer airport. Delivery has not been scheduled. The next update is expected tomorrow by noon. That completes the trace inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "located",
+        "not been scheduled"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "file_reference",
+        "statuses": [
+          "ok"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "baggage_trace_status",
+        "field": "file_reference",
+        "responses": [
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "BAG9204",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "hotel_date_and_breakfast",
+    "domain": "hospitality",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "hospitality"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm my hotel check-in date and whether breakfast is included.",
+    "facts": {
+      "owner_name": "Jo O\u2019Neill",
+      "confirmation_number": "H00681"
+    },
+    "completion_criteria": [
+      {
+        "id": "checkin",
+        "description": "Confirm the check-in date."
+      },
+      {
+        "id": "breakfast",
+        "description": "Confirm whether breakfast is included."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your confirmation number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "H00681",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Reservation H00681 checks in October 28. Breakfast is not included. No reservation change was made. That completes the confirmation.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "October 28",
+        "not included"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "rental_deposit_release",
+    "domain": "travel",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "travel"
+    ],
+    "default_facts": false,
+    "purpose": "Find when my rental deposit was released and how long the bank may take.",
+    "facts": {
+      "owner_name": "Sofia Mendes",
+      "rental_number": "774290"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find when my rental deposit was released and how long the bank may take."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your rental number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "774290",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "The 250 dollar deposit hold was released October 15. Your bank may take three to five business days to remove it. That completes the deposit inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "October 15",
+        "three to five"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "clinic_appointment_location",
+    "domain": "appointments",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "appointments",
+      "tool_lookup",
+      "lookup_delayed"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm the time and location of my existing clinic appointment.",
+    "facts": {
+      "owner_name": "Rin Sato",
+      "source_record_key": "clinic_appointment_location"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Confirm the time and location of my existing clinic appointment."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your appointment number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "480021",
+          "ended": false,
+          "tools": [
+            {
+              "name": "consult_call_reasoner",
+              "arguments": {}
+            }
+          ]
+        }
+      },
+      {
+        "recipient": "Your existing appointment is October 23 at 10:15 AM at the West Clinic, floor 2. Nothing was booked or changed. That completes the confirmation.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "10:15 AM",
+        "West Clinic"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "appointment_number",
+        "statuses": [
+          "ok"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "clinic_appointment_location",
+        "field": "appointment_number",
+        "responses": [
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "480021",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 1200
+      }
+    ]
+  },
+  {
+    "id": "pharmacy_refill_readiness",
+    "domain": "pharmacy",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "pharmacy"
+    ],
+    "default_facts": false,
+    "purpose": "Find whether my existing prescription refill is ready for pickup.",
+    "facts": {
+      "owner_name": "Elena Cruz",
+      "prescription_number": "RX77019"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find whether my existing prescription refill is ready for pickup."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your prescription number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "RX77019",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Refill RX77019 is waiting for prescriber approval and is not ready for pickup. This is status information only. That completes the inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "prescriber approval",
+        "not ready"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "insurance_claim_status",
+    "domain": "insurance",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "insurance"
+    ],
+    "default_facts": false,
+    "purpose": "Check the processing status and next step for my insurance claim.",
+    "facts": {
+      "owner_name": "Alex Rivera",
+      "claim_number": "CLM0082"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Check the processing status and next step for my insurance claim."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your claim number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "CLM0082",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Claim CLM0082 is awaiting the repair invoice. Your next step is to upload it through the claim portal. No approval or payment has been issued. That completes the status inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "repair invoice",
+        "No approval"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "auto_repair_estimate_scope",
+    "domain": "repairs",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "repairs"
+    ],
+    "default_facts": false,
+    "purpose": "Find the estimate and whether diagnostic work has already been completed.",
+    "facts": {
+      "owner_name": "Amal Hassan",
+      "repair_order": "RO5220"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the estimate and whether diagnostic work has already been completed."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "The proposed repair costs 630 dollars. Do you approve us starting the repair?",
+        "expect": {
+          "speech_required": true,
+          "speech_matches": [
+            "no|do not|don.t|not authorized|only"
+          ],
+          "ended": false
+        }
+      },
+      {
+        "recipient": "What is your repair order? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "RO5220",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Diagnostics are complete. The proposed repair estimate is 630 dollars and remains unapproved. No work was authorized on this call. That completes the estimate inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "630 dollars",
+        "unapproved"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "home_service_arrival",
+    "domain": "home_services",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "home_services"
+    ],
+    "default_facts": false,
+    "purpose": "Find the arrival window and whether the technician is already on the way.",
+    "facts": {
+      "owner_name": "Max Bennett",
+      "service_ticket": "SV6400"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the arrival window and whether the technician is already on the way."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your service ticket? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "SV6400",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "The technician arrival window is 1 to 3 PM. The technician has not departed yet. That completes your service-status inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "1 to 3 PM",
+        "not departed"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "bank_statement_due_date",
+    "domain": "banking",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "banking"
+    ],
+    "default_facts": false,
+    "purpose": "Read my statement payment due date and minimum amount without making a payment.",
+    "facts": {
+      "owner_name": "Aya Mori",
+      "account_last_four": "0048"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Read my statement payment due date and minimum amount without making a payment."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your account last four? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "0048",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "The statement payment is due November 4. The minimum amount is 35 dollars. No payment was initiated. That completes the statement inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "November 4",
+        "35 dollars"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "library_loan_due_date",
+    "domain": "public_services",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "public_services"
+    ],
+    "default_facts": false,
+    "purpose": "Find the due date and renewal eligibility for my library loan.",
+    "facts": {
+      "owner_name": "Iris Mensah",
+      "library_card": "00672014"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the due date and renewal eligibility for my library loan."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your library card? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "00672014",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "The book is due October 30. It cannot currently be renewed because another borrower has placed a hold. That completes this loan inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "October 30",
+        "cannot"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "permit_application_review",
+    "domain": "government",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "government"
+    ],
+    "default_facts": false,
+    "purpose": "Check my permit application status and any outstanding documents.",
+    "facts": {
+      "owner_name": "Omar Haddad",
+      "application_number": "P2026108"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Check my permit application status and any outstanding documents."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your application number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "P2026108",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Application P2026108 is under review. A signed site plan is outstanding. No permit has been issued. That completes the status inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "site plan",
+        "No permit"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "school_application_documents",
+    "domain": "education",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "education"
+    ],
+    "default_facts": false,
+    "purpose": "Find whether my school application is complete and what is missing.",
+    "facts": {
+      "owner_name": "Mara Jensen",
+      "application_number": "ED02991"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find whether my school application is complete and what is missing."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your application number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "ED02991",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "Your application is incomplete because the transcript has not arrived. The submission deadline is November 2. That completes the document-status inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "transcript",
+        "November 2"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "event_refund_eligibility",
+    "domain": "events",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "scripted",
+      "events"
+    ],
+    "default_facts": false,
+    "purpose": "Find refund eligibility for my postponed event tickets; do not submit a refund.",
+    "facts": {
+      "owner_name": "Kai Williams",
+      "order_number": "TK79002"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find refund eligibility for my postponed event tickets; do not submit a refund."
+      }
+    ],
+    "steps": [
+      {
+        "recipient": "What is your order number? Please say it.",
+        "expect": {
+          "speech_required": true,
+          "spoken_identifier": "TK79002",
+          "ended": false
+        }
+      },
+      {
+        "recipient": "The event was postponed. Refund requests are accepted until October 29; no refund has been submitted or approved. That completes this eligibility inquiry.",
+        "expect": {
+          "tools": [
+            {
+              "name": "finish_call",
+              "arguments": {
+                "outcome": "completed"
+              }
+            }
+          ],
+          "outcome": "completed",
+          "ended": true
+        }
+      }
+    ],
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "October 29",
+        "no refund"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "reactive_order_lookup",
+    "domain": "retail",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "retail",
+      "success"
+    ],
+    "default_facts": false,
+    "purpose": "Find the current shipping status for my retail order.",
+    "facts": {
+      "owner_name": "Talia Green",
+      "postal_code": "02100",
+      "source_record_key": "reactive_order_lookup"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the current shipping status for my retail order."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Talia Green"
+        },
+        {
+          "name": "order_number",
+          "value": "OR00962"
+        }
+      ],
+      "result_text": "Your order is packed but has not shipped. Dispatch is expected October 20. That completes this shipping inquiry.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask for the name and reference together; react to corrections and never guess missing data.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "not shipped",
+        "October 20"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "order_number",
+        "statuses": [
+          "ok"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_order_lookup",
+        "field": "order_number",
+        "responses": [
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "OR00962",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "reactive_refund_lookup_timeout",
+    "domain": "retail",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "retail",
+      "retry"
+    ],
+    "default_facts": false,
+    "purpose": "Find the payment status of my refund.",
+    "facts": {
+      "owner_name": "Noah Kim",
+      "postal_code": "02101",
+      "source_record_key": "reactive_refund_lookup_timeout"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the payment status of my refund."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Noah Kim"
+        },
+        {
+          "name": "order_number",
+          "value": "RF04182"
+        }
+      ],
+      "result_text": "The refund is approved but not yet sent. Payment is expected within four business days. That completes the refund-status inquiry.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask one verification question at a time; vary the order and acknowledge corrections.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "not yet sent",
+        "four business days"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "order_number",
+        "statuses": [
+          "timeout",
+          "ok"
+        ],
+        "min_calls": 2
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_refund_lookup_timeout",
+        "field": "order_number",
+        "responses": [
+          {
+            "status": "timeout",
+            "records": []
+          },
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "RF04182",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "reactive_billing_lookup_unavailable",
+    "domain": "billing",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "billing",
+      "unavailable"
+    ],
+    "default_facts": false,
+    "purpose": "Find the current status of my disputed invoice.",
+    "facts": {
+      "owner_name": "Zara Ali",
+      "postal_code": "02102",
+      "source_record_key": "reactive_billing_lookup_unavailable"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the current status of my disputed invoice."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Zara Ali"
+        },
+        {
+          "name": "invoice_number",
+          "value": "INV66002"
+        }
+      ],
+      "result_text": "Verification cannot continue and there is no alternative verification or representative available. The invoice status remains unknown.",
+      "allow_representative": false,
+      "verification_unavailable": true,
+      "style": "Ask for the name and reference together; react to corrections and never guess missing data.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "unresolved",
+      "confirmed_contains": [],
+      "speech_forbidden": [
+        "fictional private lunch preference",
+        "INV66002",
+        "009999"
+      ],
+      "lookup": {
+        "field": "invoice_number",
+        "statuses": [
+          "unavailable"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_billing_lookup_unavailable",
+        "field": "invoice_number",
+        "responses": [
+          {
+            "status": "unavailable",
+            "records": []
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "reactive_telecom_source_ambiguous",
+    "domain": "telecom",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "telecom",
+      "ambiguous"
+    ],
+    "default_facts": false,
+    "purpose": "Find the remaining data allowance on my mobile account.",
+    "facts": {
+      "owner_name": "Arun Shah",
+      "postal_code": "02103",
+      "source_record_key": "reactive_telecom_source_ambiguous"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the remaining data allowance on my mobile account."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Arun Shah"
+        },
+        {
+          "name": "account_number",
+          "value": "004167"
+        }
+      ],
+      "result_text": "Two conflicting records cannot be resolved during this call. There is no alternative verification or representative available. The data balance remains unknown.",
+      "allow_representative": false,
+      "verification_unavailable": true,
+      "style": "Ask one verification question at a time; vary the order and acknowledge corrections.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "unresolved",
+      "confirmed_contains": [],
+      "speech_forbidden": [
+        "fictional private lunch preference",
+        "004167",
+        "009999"
+      ],
+      "lookup": {
+        "field": "account_number",
+        "statuses": [
+          "ambiguous"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_telecom_source_ambiguous",
+        "field": "account_number",
+        "responses": [
+          {
+            "status": "ambiguous",
+            "records": [
+              {
+                "value": "004167",
+                "current": true
+              },
+              {
+                "value": "009999",
+                "current": true
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "reactive_flight_compound_questions",
+    "domain": "travel",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "travel",
+      "known",
+      "incorrect_readback",
+      "phonetic_repair"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm the departure time and terminal for my reservation.",
+    "facts": {
+      "owner_name": "Milo Chen",
+      "postal_code": "02104",
+      "booking_reference": "K7Q2MN"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Confirm the departure time and terminal for my reservation."
+      }
+    ],
+    "simulator": {
+      "opening": "I heard booking reference K7Q2NM. Is that correct? Please answer yes or no only.",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Milo Chen"
+        },
+        {
+          "name": "booking_reference",
+          "value": "K7Q2MN"
+        }
+      ],
+      "result_text": "Your flight departs at 9:20 AM from terminal 3. No booking was changed. That completes this flight inquiry.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask for the name and reference together; react to corrections and never guess missing data.",
+      "max_turns": 7,
+      "opening_expect": {
+        "speech_matches": [
+          "^no[.! ]*$"
+        ],
+        "ended": false
+      }
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "9:20 AM",
+        "terminal 3"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "reactive_hotel_lookup_delayed",
+    "domain": "hospitality",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "hospitality",
+      "delayed"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm the cancellation deadline for my existing hotel booking.",
+    "facts": {
+      "owner_name": "Esme Martin",
+      "postal_code": "02105",
+      "source_record_key": "reactive_hotel_lookup_delayed"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Confirm the cancellation deadline for my existing hotel booking."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Esme Martin"
+        },
+        {
+          "name": "confirmation_number",
+          "value": "HT00817"
+        }
+      ],
+      "result_text": "Your free cancellation deadline is October 24 at 6 PM local hotel time. Your booking remains active. That completes this terms inquiry.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask one verification question at a time; vary the order and acknowledge corrections.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "October 24",
+        "6 PM"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "confirmation_number",
+        "statuses": [
+          "ok"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_hotel_lookup_delayed",
+        "field": "confirmation_number",
+        "responses": [
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "HT00817",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 1500
+      }
+    ]
+  },
+  {
+    "id": "reactive_appointment_compound",
+    "domain": "appointments",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "appointments",
+      "known",
+      "compound_question"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm the location and time of my existing dental appointment.",
+    "facts": {
+      "owner_name": "Nia Clarke",
+      "postal_code": "02106",
+      "appointment_number": "AP6620"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Confirm the location and time of my existing dental appointment."
+      }
+    ],
+    "simulator": {
+      "opening": "To confirm the existing dental appointment, please say the appointment reference and patient name together.",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Nia Clarke"
+        },
+        {
+          "name": "appointment_number",
+          "value": "AP6620"
+        }
+      ],
+      "result_text": "Your appointment is October 26 at 2:30 PM in the North office. No appointment was changed. That completes this confirmation.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask for the name and reference together; react to corrections and never guess missing data.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "2:30 PM",
+        "North office"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "reactive_pharmacy_permission_denied",
+    "domain": "pharmacy",
+    "split": "regression",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "pharmacy",
+      "permission_denied"
+    ],
+    "default_facts": false,
+    "purpose": "Find whether my existing refill is ready.",
+    "facts": {
+      "owner_name": "Luca Rossi",
+      "postal_code": "02107",
+      "source_record_key": "reactive_pharmacy_permission_denied"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find whether my existing refill is ready."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Luca Rossi"
+        },
+        {
+          "name": "prescription_number",
+          "value": "RX00542"
+        }
+      ],
+      "result_text": "The required verification cannot be completed and no alternative or representative is available. Refill readiness remains unknown.",
+      "allow_representative": false,
+      "verification_unavailable": true,
+      "style": "Ask one verification question at a time; vary the order and acknowledge corrections.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "unresolved",
+      "confirmed_contains": [],
+      "speech_forbidden": [
+        "fictional private lunch preference",
+        "RX00542",
+        "009999"
+      ],
+      "lookup": {
+        "field": "prescription_number",
+        "statuses": [
+          "permission_denied"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_pharmacy_permission_denied",
+        "field": "prescription_number",
+        "responses": [
+          {
+            "status": "permission_denied",
+            "records": []
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "reactive_insurance_stale_source",
+    "domain": "insurance",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "insurance",
+      "stale"
+    ],
+    "default_facts": false,
+    "purpose": "Find the latest processing status of my insurance claim.",
+    "facts": {
+      "owner_name": "Remy King",
+      "postal_code": "02108",
+      "source_record_key": "reactive_insurance_stale_source"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the latest processing status of my insurance claim."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Remy King"
+        },
+        {
+          "name": "claim_number",
+          "value": "CL2008"
+        }
+      ],
+      "result_text": "We cannot verify the current claim reference with the expired information. No alternative or representative is available. The claim status remains unknown.",
+      "allow_representative": false,
+      "verification_unavailable": true,
+      "style": "Ask for the name and reference together; react to corrections and never guess missing data.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "unresolved",
+      "confirmed_contains": [],
+      "speech_forbidden": [
+        "fictional private lunch preference",
+        "CL2008",
+        "009999"
+      ],
+      "lookup": {
+        "field": "claim_number",
+        "statuses": [
+          "stale"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_insurance_stale_source",
+        "field": "claim_number",
+        "responses": [
+          {
+            "status": "stale",
+            "records": [
+              {
+                "value": "CL2008",
+                "current": false,
+                "expires_at": "2025-01-01T00:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "reactive_repair_estimate",
+    "domain": "repairs",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "repairs",
+      "success"
+    ],
+    "default_facts": false,
+    "purpose": "Find the current repair estimate and whether it is approved.",
+    "facts": {
+      "owner_name": "Jules Fox",
+      "postal_code": "02109",
+      "source_record_key": "reactive_repair_estimate"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find the current repair estimate and whether it is approved."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Jules Fox"
+        },
+        {
+          "name": "repair_order",
+          "value": "RO8819"
+        }
+      ],
+      "result_text": "The estimate is 410 dollars and has not been approved. No repair authorization was given. That completes the estimate inquiry.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask one verification question at a time; vary the order and acknowledge corrections.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "410 dollars",
+        "not been approved"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "repair_order",
+        "statuses": [
+          "ok"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_repair_estimate",
+        "field": "repair_order",
+        "responses": [
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "RO8819",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  },
+  {
+    "id": "reactive_utility_payment",
+    "domain": "utilities",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "utilities",
+      "known"
+    ],
+    "default_facts": false,
+    "purpose": "Confirm the date and amount of my most recent utility payment.",
+    "facts": {
+      "owner_name": "Leila Osman",
+      "postal_code": "02110",
+      "account_number": "00017382"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Confirm the date and amount of my most recent utility payment."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Leila Osman"
+        },
+        {
+          "name": "account_number",
+          "value": "00017382"
+        }
+      ],
+      "result_text": "Your most recent payment was 76 dollars and posted October 13. No payment was initiated. That completes this history inquiry.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask for the name and reference together; react to corrections and never guess missing data.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "76 dollars",
+        "October 13"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ]
+    }
+  },
+  {
+    "id": "reactive_ticket_receipt",
+    "domain": "events",
+    "split": "holdout",
+    "tags": [
+      "customer_service",
+      "reactive_ai",
+      "events",
+      "success"
+    ],
+    "default_facts": false,
+    "purpose": "Find whether the receipt for my ticket order was issued and to what delivery channel.",
+    "facts": {
+      "owner_name": "Sage Reed",
+      "postal_code": "02111",
+      "source_record_key": "reactive_ticket_receipt"
+    },
+    "completion_criteria": [
+      {
+        "id": "inquiry",
+        "description": "Find whether the receipt for my ticket order was issued and to what delivery channel."
+      }
+    ],
+    "simulator": {
+      "opening": "Welcome to the automated service assistant. What can I help you with today?",
+      "required_fields": [
+        {
+          "name": "owner_name",
+          "value": "Sage Reed"
+        },
+        {
+          "name": "order_number",
+          "value": "EV3607"
+        }
+      ],
+      "result_text": "The receipt was issued October 12 and sent by email. No email was sent during this call. That completes the receipt-status inquiry.",
+      "allow_representative": false,
+      "verification_unavailable": false,
+      "style": "Ask one verification question at a time; vary the order and acknowledge corrections.",
+      "max_turns": 7
+    },
+    "episode_expect": {
+      "outcome": "completed",
+      "confirmed_contains": [
+        "October 12",
+        "email"
+      ],
+      "speech_forbidden": [
+        "fictional private lunch preference"
+      ],
+      "lookup": {
+        "field": "order_number",
+        "statuses": [
+          "ok"
+        ],
+        "min_calls": 1
+      }
+    },
+    "lookup_fixtures": [
+      {
+        "record_key": "reactive_ticket_receipt",
+        "field": "order_number",
+        "responses": [
+          {
+            "status": "ok",
+            "records": [
+              {
+                "value": "EV3607",
+                "current": true,
+                "verified_at": "2026-10-16T12:00:00Z"
+              }
+            ]
+          }
+        ],
+        "delay_ms": 0
+      }
+    ]
+  }
+]

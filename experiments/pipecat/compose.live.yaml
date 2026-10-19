@@ -1,0 +1,28 @@
+# Activate only for a separately reviewed synthetic trial. No production mounts.
+services:
+  live-runner:
+    image: dots-pipecat-spike:local
+    build: .
+    profiles: [live]
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=256m"]
+    networks: [egress]
+    secrets: [model-key, live-approval]
+    volumes:
+      - ../../artifacts/pipecat/inputs:/fixtures:ro
+      - ../../artifacts/pipecat:/artifacts
+    command:
+      - python
+      - run_live.py
+      - --key-file=/run/secrets/model-key
+      - --approval-file=/run/secrets/live-approval
+      - --scenario=/fixtures/baseline.yaml
+      - --output-directory=/artifacts/pipecat-live-one
+secrets:
+  model-key:
+    file: ../../.secrets/pipecat-model-key
+  live-approval:
+    file: ../../.secrets/pipecat-live-approval.json

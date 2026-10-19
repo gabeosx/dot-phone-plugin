@@ -1,0 +1,18 @@
+services:
+  phone-app:
+    environment:
+      DOTS_PHONE_PROFILE: production
+      DOTS_PHONE_DRY_RUN: "${DOTS_PHONE_DRY_RUN:-true}"
+      DOTS_PHONE_PUBLIC_BASE_URL: "${DOTS_PHONE_PUBLIC_BASE_URL:?Verified HTTPS origin required}"
+      DOTS_PHONE_ALLOWED_TEST_NUMBERS: "${DOTS_PHONE_ALLOWED_TEST_NUMBERS:-}"
+      DOTS_PHONE_CALLBACK_HOSTS: "${DOTS_PHONE_CALLBACK_HOSTS:?Exact callback hosts required}"
+      DOTS_PHONE_OAUTH_REDIRECT_URIS: "${DOTS_PHONE_OAUTH_REDIRECT_URIS:?Exact OAuth redirects required}"
+      DOTS_PHONE_TWILIO_PHONE_NUMBER: "${DOTS_PHONE_TWILIO_PHONE_NUMBER:-}"
+      DOTS_PHONE_ALLOWED_USER_SUBJECT: "${DOTS_PHONE_ALLOWED_USER_SUBJECT:-owner}"
+    secrets: [runtime]
+    volumes: [production-state:/data]
+secrets:
+  runtime:
+    file: .secrets/runtime.json
+volumes:
+  production-state:

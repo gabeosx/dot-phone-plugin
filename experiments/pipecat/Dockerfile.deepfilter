@@ -1,0 +1,40 @@
+# Native dependency is fetched only inside the build, never vendored in Git.
+ARG BASE_IMAGE=dots-phone-local:local
+FROM rust:1.78.0-bookworm@sha256:5907e96b0293eb53bcc8f09b4883d71449808af289862950ede9a0e3cca44ff5 AS native
+ARG DF_COMMIT=978576aa8400552a4ce9730838c635aa30db5e61
+ARG DF_SOURCE_SHA256=61a0e88025b70643805ed1e0c29b9b07693b538be538dd189972fc15c1212075
+ENV CARGO_BUILD_JOBS=2 CARGO_NET_GIT_FETCH_WITH_CLI=true
+RUN mkdir /build && curl --fail --location --retry 0 \
+    "https://codeload.github.com/Rikorose/DeepFilterNet/tar.gz/${DF_COMMIT}" -o /tmp/df.tar.gz \
+    && echo "${DF_SOURCE_SHA256}  /tmp/df.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/df.tar.gz -C /build --strip-components=1 && rm /tmp/df.tar.gz
+WORKDIR /build
+# Select shared-library output and omit the unused embedded default weights.
+# Match the CLI thresholds used in our evaluation. Upstream's C API otherwise
+# uses -10/30/20 dB; the CLI explicitly uses -15/35/35 dB.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,target=/build/target,sharing=locked \
+    sed -i '/^name = "df"$/a crate-type = ["cdylib"]' libDF/Cargo.toml \
+    && sed -i '/^capi = /s/"default-model", //' libDF/Cargo.toml \
+    && sed -i 's/with_atten_lim(atten_lim);/with_atten_lim(atten_lim).with_thresholds(-15.0, 35.0, 35.0);/' libDF/src/capi.rs \
+    && cargo build --locked --release --package deep_filter --lib --no-default-features --features capi \
+    && mkdir -p /out/licenses && cp target/release/libdf.so /out/libdf.so \
+    && cp Cargo.lock /out/licenses/ \
+    && cargo tree --offline --locked --package deep_filter --no-default-features --features capi --edges normal > /out/licenses/dependency-tree.txt \
+    && find /usr/local/cargo/registry/src -type f \( -iname 'LICENSE*' -o -iname 'COPYING*' -o -iname 'NOTICE*' \) -exec cp --parents -t /out/licenses/ {} +
+
+FROM ${BASE_IMAGE}
+USER root
+WORKDIR /app
+COPY --from=native /out/libdf.so /opt/deepfilter/lib/libdf.so
+COPY --from=native /build/LICENSE-MIT /build/LICENSE-APACHE /opt/deepfilter/licenses/
+COPY --from=native /out/licenses /opt/deepfilter/licenses/dependencies
+COPY pyproject.toml uv.lock ./
+# Support a previously built ordinary image without retaining retired modules.
+RUN rm -rf /app/dots_phone /app/tests
+COPY dots_phone ./dots_phone
+COPY tests ./tests
+# Retain unrelated optional extras already installed in the chosen base image.
+RUN uv sync --frozen --inexact --all-groups --extra pipecat --extra audio-review --extra deepfilter
+USER 10001:10001

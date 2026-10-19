@@ -1,0 +1,25 @@
+name: offline-acceptance
+on: [push, pull_request]
+permissions: {contents: read}
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: {fetch-depth: 0}
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
+        with: {version: "0.10.6"}
+      - run: uv sync --frozen --extra pipecat --python 3.13
+      - run: uv run --no-sync python -m dots_phone.checks offline
+      - run: uv run --no-sync python scripts/secret_scan.py --history
+      - run: uv run --no-sync python scripts/public_release_audit.py --history --report artifacts/public-source-audit.json
+      - run: node --test experiments/pipecat/tests/*.test.mjs experiments/pipecat/test_automatic_call_worker.mjs
+      - run: uv run pip-audit --disable-pip --require-hashes -r <(uv export --frozen --no-dev --extra pipecat --extra deepfilter --extra audio-review --no-emit-project --format requirements-txt)
+        shell: bash
+      - run: docker run --rm --network none --user "$(id -u):$(id -g)" -v "$PWD:/repo:ro" -v "$PWD/artifacts:/report" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git /repo --redact --report-format json --report-path /report/gitleaks.json --no-banner
+      - run: uv build
+      - run: docker compose --profile test run --build --rm --user "$(id -u):$(id -g)" test-runner
+      - run: docker compose -f experiments/pipecat/compose.phone.yaml run --build --rm --no-deps -T tests
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with: {name: acceptance, path: artifacts/}

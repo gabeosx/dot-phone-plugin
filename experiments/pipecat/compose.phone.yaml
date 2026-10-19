@@ -1,0 +1,62 @@
+name: dots-phone-pipecat
+x-runtime: &runtime
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=256m"]
+x-phone: &phone
+  <<: *runtime
+  build: {context: ../.., dockerfile: experiments/pipecat/Dockerfile.phone}
+  image: dots-phone-pipecat:local
+services:
+  phone-app:
+    <<: *phone
+    environment:
+      DOTS_PHONE_PROFILE: evaluation
+      DOTS_PHONE_DRY_RUN: "true"
+      DOTS_PHONE_VOICE_BACKEND: pipecat
+      DOTS_PHONE_PUBLIC_BASE_URL: http://127.0.0.1:8852
+      DOTS_PHONE_ALLOWED_TEST_NUMBERS: "+12125550100,+12125550101"
+    networks: [private, egress]
+    volumes: [pipecat-state:/data]
+    stop_grace_period: 60s
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 5s
+      retries: 10
+  media-ingress:
+    <<: *phone
+    environment: {DOTS_PHONE_INGRESS_KIND: media}
+    command: [uvicorn, dots_phone.ingress:create_gateway, --factory, --host, 0.0.0.0, --port, "8000", --no-access-log, --no-proxy-headers]
+    networks: [private, media-edge]
+    ports: ["127.0.0.1:8851:8000"]
+  owner-ingress:
+    <<: *phone
+    environment: {DOTS_PHONE_INGRESS_KIND: owner}
+    command: [uvicorn, dots_phone.ingress:create_gateway, --factory, --host, 0.0.0.0, --port, "8000", --no-access-log, --no-proxy-headers]
+    networks: [private, owner-edge]
+    ports: ["127.0.0.1:8852:8000"]
+  tunnel-client:
+    <<: *runtime
+    profiles: [tunnel]
+    image: dots-pipecat-tunnel:local
+    build: {context: ., dockerfile: Dockerfile.tunnel}
+    networks: [private, egress]
+    secrets: [tunnel-key]
+    depends_on: {phone-app: {condition: service_healthy}}
+    command: [run, "--control-plane.tunnel-id=${DOTS_PIPECAT_TUNNEL_ID:-}", --control-plane.api-key=file:/run/secrets/tunnel-key, --mcp.server-url=http://phone-app:8000/mcp, --health.listen-addr=127.0.0.1:8080]
+  tests:
+    <<: *phone
+    profiles: [test]
+    command: [python, -m, pytest, -q, -p, no:cacheprovider]
+    networks: [private]
+secrets:
+  tunnel-key: {file: ../../.secrets/pipecat-tunnel-key}
+volumes:
+  pipecat-state:
+networks:
+  private: {internal: true}
+  egress: {}
+  media-edge: {}
+  owner-edge: {}

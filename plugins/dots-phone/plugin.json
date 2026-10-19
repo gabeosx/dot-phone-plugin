@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "dots-phone",
+  "version": "0.3.1",
+  "license": "MIT",
+  "description": "Phone assistance from a plain request, using your connected sources.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Dots Phone",
+        "shortDescription": "Private calls supervised by Dots",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ]
+      }
+    }
+  }
+}

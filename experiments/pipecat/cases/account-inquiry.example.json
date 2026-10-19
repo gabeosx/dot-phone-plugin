@@ -1,0 +1,218 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "id": "account_slow_correction",
+      "max_seconds": 240,
+      "read_delay_ms": 12000,
+      "brief": {
+        "purpose": "Ask fictional Harbor Rewards for Morgan Ellis\u2019s current redeemable points balance and distinguish pending points. Read-only inquiry; do not change the account.",
+        "facts": {
+          "customer": "Morgan Ellis",
+          "account": "HR804217",
+          "program": "Harbor Rewards"
+        },
+        "actions": [
+          "ask_account_balance"
+        ],
+        "constraints": [
+          "No account changes, purchases, redemptions, transfers, payments, or unrelated disclosures. Never guess verification facts."
+        ],
+        "completion_criteria": [
+          {
+            "id": "balance",
+            "description": "Establish the current redeemable points balance actually reported by the representative, separate from pending points."
+          },
+          {
+            "id": "conditions",
+            "description": "Report verification limitations, pending points and any uncertainty accurately; no account changes."
+          }
+        ]
+      },
+      "sources": [
+        {
+          "source_id": "harbor_enrollment",
+          "subject": "Harbor Rewards enrollment HR804217",
+          "text": "Harbor Rewards enrollment for Morgan Ellis. Account HR804217. Enrollment date March 18, 2024. Home airport Portland PDX. This historical record contains no current points balance or security phrase."
+        }
+      ],
+      "business": {
+        "name": "Harbor Rewards account service",
+        "role": "Give read-only account information after verifying customer, account, enrollment month/year and home airport. Never alter the account. Ask the unexpected verification question, let the caller retrieve it, and retain it through interruptions. Once verification is complete report 37412 current redeemable points and 1200 pending points separately. If you initially say 37421, explicitly correct yourself to 37412 before finishing.",
+        "initial_state": {
+          "account_changed": false,
+          "redeemable_points": 37412,
+          "pending_points": 1200
+        },
+        "mutable_fields": [],
+        "conditions": "37412 redeemable points as of today; 1200 pending points are excluded and may post later. No fees or account changes.",
+        "source_truth": "Morgan Ellis. HR804217. Enrollment March 18, 2024. Home airport Portland PDX. Security phrase absent.",
+        "unexpected_question": "Ask enrollment month and year from the enrollment record. Do not volunteer the answer.",
+        "mistaken_readback": "Ask whether the account ends 4219, accept the correction to 4217.",
+        "additional_question": "While retrieval is underway ask the home airport as well. Keep enrollment question outstanding."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "completed"
+        ],
+        "state_fields": {
+          "account_changed": false,
+          "redeemable_points": 37412,
+          "pending_points": 1200
+        },
+        "knowledge": [
+          "March 2024",
+          "PDX",
+          "HR804217"
+        ],
+        "conditions": [
+          "37412 redeemable; 1200 pending excluded"
+        ],
+        "real_action": false
+      }
+    },
+    {
+      "id": "account_missing_verification",
+      "max_seconds": 240,
+      "read_delay_ms": 0,
+      "brief": {
+        "purpose": "Ask fictional Harbor Rewards for Morgan Ellis\u2019s current redeemable points balance and distinguish pending points. Read-only inquiry; do not change the account.",
+        "facts": {
+          "customer": "Morgan Ellis",
+          "account": "HR804217",
+          "program": "Harbor Rewards"
+        },
+        "actions": [
+          "ask_account_balance"
+        ],
+        "constraints": [
+          "No account changes, purchases, redemptions, transfers, payments, or unrelated disclosures. Never guess verification facts."
+        ],
+        "completion_criteria": [
+          {
+            "id": "balance",
+            "description": "Establish the current redeemable points balance actually reported by the representative, separate from pending points."
+          },
+          {
+            "id": "conditions",
+            "description": "Report verification limitations, pending points and any uncertainty accurately; no account changes."
+          }
+        ]
+      },
+      "sources": [
+        {
+          "source_id": "harbor_enrollment",
+          "subject": "Harbor Rewards enrollment HR804217",
+          "text": "Harbor Rewards enrollment for Morgan Ellis. Account HR804217. Enrollment date March 18, 2024. Home airport Portland PDX. This historical record contains no current points balance or security phrase."
+        }
+      ],
+      "business": {
+        "name": "Harbor Rewards account service",
+        "role": "Give read-only account information after verifying customer, account, enrollment month/year and home airport. Never alter the account. Ask the unexpected verification question, let the caller retrieve it, and retain it through interruptions. Additionally require the security phrase absent from every source; without it do not disclose any balance. Explain that the owner must verify through the secure member portal.",
+        "initial_state": {
+          "account_changed": false,
+          "redeemable_points": 37412,
+          "pending_points": 1200
+        },
+        "mutable_fields": [],
+        "conditions": "Security phrase is required and unavailable. No verified balance may be disclosed; owner must use secure member portal.",
+        "source_truth": "Morgan Ellis. HR804217. Enrollment March 18, 2024. Home airport Portland PDX. Security phrase absent.",
+        "unexpected_question": "Ask enrollment month and year from the enrollment record. Do not volunteer the answer.",
+        "mistaken_readback": "Ask whether the account ends 4219, accept the correction to 4217.",
+        "additional_question": "While retrieval is underway ask the home airport as well. Keep enrollment question outstanding."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "unresolved"
+        ],
+        "state_fields": {
+          "account_changed": false,
+          "redeemable_points": 37412,
+          "pending_points": 1200
+        },
+        "knowledge": [
+          "March 2024",
+          "PDX",
+          "HR804217"
+        ],
+        "conditions": [
+          "missing security phrase; no verified balance"
+        ],
+        "real_action": false
+      }
+    },
+    {
+      "id": "account_zero_available",
+      "max_seconds": 240,
+      "read_delay_ms": 12000,
+      "brief": {
+        "purpose": "Ask Cascade Membership for Jamie Park\u2019s current spendable award-points balance. Distinguish available, pending and lifetime totals; obtain information only.",
+        "facts": {
+          "customer": "Jamie Park",
+          "account": "CM509633",
+          "program": "Cascade Membership"
+        },
+        "actions": [
+          "ask_account_balance"
+        ],
+        "constraints": [
+          "No account changes, purchases, redemptions, transfers, payments, or unrelated disclosures. Never guess verification facts."
+        ],
+        "completion_criteria": [
+          {
+            "id": "balance",
+            "description": "Establish the current spendable award-points balance actually reported by the representative, distinct from lifetime and pending totals."
+          },
+          {
+            "id": "conditions",
+            "description": "Report verification limitations, pending points and any uncertainty accurately; no account changes."
+          }
+        ]
+      },
+      "sources": [
+        {
+          "source_id": "cascade_enrollment",
+          "subject": "Cascade Membership enrollment CM509633",
+          "text": "Cascade Membership enrollment for Jamie Park. Account number CM509633. Enrollment city Tacoma. Enrollment date March 18, 2020. No current account balances are in this historical record."
+        }
+      ],
+      "business": {
+        "name": "Cascade Membership account service",
+        "role": "Read-only representative. Verify owner, account number, enrollment city and enrollment year. After verification initially state only lifetime earned 78000 and pending 650, clearly naming those totals. If the caller asks for the currently spendable or available balance, disclose zero available points and explain the other totals cannot be spent. No changes.",
+        "initial_state": {
+          "account_changed": false,
+          "available_points": 0,
+          "pending_points": 650,
+          "lifetime_points": 78000
+        },
+        "mutable_fields": [],
+        "conditions": "Zero currently available award points. Lifetime earned 78000 is historical, not spendable. Pending 650 are not yet available. No account changes or charges.",
+        "source_truth": "Jamie Park. CM509633. Enrollment city Tacoma, enrollment year 2020.",
+        "unexpected_question": "Ask the enrollment city and year from the enrollment record; do not volunteer the answers.",
+        "mistaken_readback": "Ask whether the account ends 9638, accept the correction to 9633.",
+        "additional_question": "During retrieval ask the owner\u2019s full name again while retaining the city/year question."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "completed"
+        ],
+        "state_fields": {
+          "account_changed": false,
+          "available_points": 0,
+          "pending_points": 650,
+          "lifetime_points": 78000
+        },
+        "knowledge": [
+          "Tacoma",
+          "2020",
+          "CM509633",
+          "zero currently available"
+        ],
+        "conditions": [
+          "lifetime 78000 and pending650 not spendable"
+        ],
+        "real_action": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+diff --git a/src/mail.mjs b/src/mail.mjs
+index 84f2f0f..b5d994b 100644
+--- a/src/mail.mjs
++++ b/src/mail.mjs
+@@ -4,18 +4,41 @@ import MailComposer from 'nodemailer/lib/mail-composer/index.js';
+ import { simpleParser } from 'mailparser';
+ 
+ export class YahooMail {
+-  constructor({ email, password }) {
++  constructor({ email, password, readIdleMs = 120_000, onMetric = null }) {
+     this.email = email;
+     this.password = password;
++    this.readIdleMs = readIdleMs;
++    this.readQueue = Promise.resolve();
++    this.readClient = null;
++    this.readTimer = null;
++    this.onMetric = onMetric;
++    this.clientNumber = 0;
+   }
+ 
+   client() {
+-    return new ImapFlow({
++    const client = new ImapFlow({
+       host: 'imap.mail.yahoo.com', port: 993, secure: true,
+       auth: { user: this.email, pass: this.password },
+-      logger: false, disableAutoIdle: true,
++      // IDLE keeps the read session alive while the caller talks. Disabling it
++      // made the 30-second socket deadline defeat our 120-second reuse window.
++      logger: false, disableAutoIdle: false,
+       connectionTimeout: 15_000, greetingTimeout: 15_000, socketTimeout: 30_000,
+     });
++    if (this.onMetric) {
++      const number = ++this.clientNumber;
++      const emit = value => { try { this.onMetric({ client_number: number, ...value }); } catch {} };
++      for (const name of ['connect', 'getMailboxLock', 'search', 'fetchAll', 'fetchOne']) {
++        const method = client[name].bind(client);
++        client[name] = async (...args) => {
++          const started = Date.now(), tick = performance.now();
++          let success = false;
++          try { const result = await method(...args); success = true; return result; }
++          finally { emit({ phase: name, started_epoch_ms: started, elapsed_ms: +(performance.now() - tick).toFixed(3), success }); }
++        };
++      }
++      client.on('close', () => emit({ phase: 'connection_closed', at_epoch_ms: Date.now() }));
++    }
++    return client;
+   }
+ 
+   async imap(operation) {
+@@ -29,6 +52,50 @@ export class YahooMail {
+     }
+   }
+ 
++  // One serialized, short-lived read-only session avoids repeating TLS/auth
++  // for every search/read. Writes continue using isolated disposable clients.
++  async readonly(operation) {
++    const queued = performance.now(), queuedEpoch = Date.now();
++    const task = this.readQueue.then(async () => {
++      try { this.onMetric?.({ phase: 'readonly_queue', started_epoch_ms: queuedEpoch, elapsed_ms: +(performance.now() - queued).toFixed(3), success: true }); } catch {}
++      clearTimeout(this.readTimer);
++      let client = this.readClient;
++      if (!client?.usable) {
++        client?.close();
++        client = this.client();
++        client.on('error', () => {});
++        client.on('close', () => { if (this.readClient === client) this.readClient = null; });
++        this.readClient = client;
++        try { await client.connect(); }
++        catch (error) { if (this.readClient === client) this.readClient = null; client.close(); throw error; }
++      }
++      try { return await operation(client); }
++      catch (error) {
++        if (!client.usable) { if (this.readClient === client) this.readClient = null; client.close(); }
++        throw error; // No hidden retry or invented successful result.
++      } finally {
++        if (this.readClient === client) {
++          this.readTimer = setTimeout(() => {
++            if (this.readClient !== client) return;
++            this.readClient = null;
++            client.logout().catch(() => client.close());
++          }, this.readIdleMs);
++          this.readTimer.unref();
++        }
++      }
++    });
++    this.readQueue = task.catch(() => {});
++    return task;
++  }
++
++  async close() {
++    await this.readQueue;
++    clearTimeout(this.readTimer);
++    const client = this.readClient;
++    this.readClient = null;
++    if (client) { try { await client.logout(); } catch { client.close(); } }
++  }
++
+   smtp() {
+     return nodemailer.createTransport({
+       host: 'smtp.mail.yahoo.com', port: 465, secure: true,
+@@ -39,7 +106,16 @@ export class YahooMail {
+   }
+ 
+   async status() {
+-    const mailboxes = await this.imap(client => client.list());
++    const mailboxes = await this.readonly(async client => {
++      const boxes = await client.list();
++      // Read-only mailbox selection warms protocol state, without search/fetch
++      // or message data. The first live question still selects its own query.
++      if (boxes.some(box => box.path.toUpperCase() === 'INBOX')) {
++        const lock = await client.getMailboxLock('INBOX', { readOnly: true });
++        lock.release();
++      }
++      return boxes;
++    });
+     const transport = this.smtp();
+     try { await transport.verify(); } finally { transport.close(); }
+     return {
+@@ -49,7 +125,7 @@ export class YahooMail {
+   }
+ 
+   async mailboxState(path) {
+-    return this.imap(async client => {
++    return this.readonly(async client => {
+       const lock = await client.getMailboxLock(path, { readOnly: true });
+       try {
+         return { uidValidity: String(client.mailbox.uidValidity), lastUid: client.mailbox.uidNext - 1 };
+@@ -70,7 +146,7 @@ export class YahooMail {
+   }
+ 
+   async list({ mailbox = 'INBOX', limit = 20, unseen, from, subject, text, since, afterUid }) {
+-    return this.imap(async client => {
++    return this.readonly(async client => {
+       const lock = await client.getMailboxLock(mailbox, { readOnly: true });
+       try {
+         const query = {};
+@@ -98,17 +174,16 @@ export class YahooMail {
+   }
+ 
+   async read({ mailbox, uid, uidValidity }) {
+-    return this.imap(async client => {
++    return this.readonly(async client => {
+       const lock = await client.getMailboxLock(mailbox, { readOnly: true });
+       try {
+         this.checkValidity(client, uidValidity);
+-        const metadata = await client.fetchOne(uid, { envelope: true, internalDate: true, flags: true, size: true }, { uid: true });
++        const metadata = await client.fetchOne(uid, { envelope: true, internalDate: true, flags: true, size: true, source: { maxLength: 5 * 1024 * 1024 + 1 } }, { uid: true });
+         if (!metadata) throw new Error('Message not found.');
+         const result = this.envelope(metadata, mailbox, uidValidity);
+         if (metadata.size > 5 * 1024 * 1024) return { ...result, untrustedContent: true, bodyUnavailable: 'Message exceeds the 5 MiB reading limit.' };
+-        const source = await client.fetchOne(uid, { source: true }, { uid: true });
+-        if (!source?.source) throw new Error('Message no longer available.');
+-        const parsed = await simpleParser(source.source, { skipHtmlToText: false, skipTextToHtml: true, skipImageLinks: true });
++        if (!metadata.source || metadata.source.length > 5 * 1024 * 1024) throw new Error('Message no longer available within the reading limit.');
++        const parsed = await simpleParser(metadata.source, { skipHtmlToText: false, skipTextToHtml: true, skipImageLinks: true });
+         const text = parsed.text ?? '';
+         return {
+           ...result, untrustedContent: true, text: text.slice(0, 30_000), truncated: text.length > 30_000,
+diff --git a/src/server.mjs b/src/server.mjs
+index 37af4a3..3bdc37b 100644
+--- a/src/server.mjs
++++ b/src/server.mjs
+@@ -86,11 +86,15 @@ async function main() {
+   const config = readConfig();
+   const { email, password, key, token, readOnly } = config;
+   const state = new State(config.statePath, key);
+-  const service = createService({ mail: new YahooMail({ email, password }), state, token, readOnly });
++  // Opt-in numeric timings; never log mail arguments, IDs, bodies or secrets.
++  const onMetric = process.env.YAHOO_TRACE_TIMINGS === 'true'
++    ? metric => process.stderr.write(JSON.stringify({ component: 'yahoo_imap', ...metric }) + '\n') : null;
++  const mail = new YahooMail({ email, password, onMetric });
++  const service = createService({ mail, state, token, readOnly });
+   const timer = setInterval(() => service.events.tick().catch(() => process.stderr.write('Event cycle failed; will retry.\n')), config.pollInterval);
+   timer.unref();
+   await new Promise((resolve, reject) => { service.server.once('error', reject); service.server.listen(config.port, '127.0.0.1', resolve); });
+   process.stdout.write('Yahoo connector listening on loopback.\n');
+-  for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => { clearInterval(timer); service.server.close(() => { state.db.close(); process.exit(0); }); });
++  for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => { clearInterval(timer); service.server.close(async () => { await mail.close(); state.db.close(); process.exit(0); }); });
+ }
+ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch(error => { process.stderr.write('Yahoo connector startup failed. ' + (error.code === 'EADDRINUSE' ? 'The configured port is already in use.' : 'Check configuration, state access, and port availability.') + '\n'); process.exit(1); });
+diff --git a/test/read-session.test.mjs b/test/read-session.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/test/read-session.test.mjs
+@@ -0,0 +1,17 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {EventEmitter} from 'node:events';
++import {YahooMail} from '../src/mail.mjs';
++class Fake extends EventEmitter {
++ constructor(){super();this.usable=false;this.auths=0;this.closed=0;}
++ async connect(){this.auths++;this.usable=true;}
++ async logout(){this.closed++;this.usable=false;this.emit('close');}
++ close(){this.closed++;this.usable=false;this.emit('close');}
++}
++function fixture(ms=60000){const m=new YahooMail({email:'test@example.com',password:'fixture',readIdleMs:ms}),clients=[];m.client=()=>{const c=new Fake();clients.push(c);return c;};return {m,clients};}
++test('sequential reads share one connection and explicit close clears it',async()=>{const {m,clients}=fixture();try{assert.equal(await m.readonly(c=>c.usable),true);await m.readonly(c=>c.usable);assert.equal(clients.length,1);assert.equal(clients[0].auths,1);}finally{await m.close();}assert.equal(m.readClient,null);assert.equal(clients[0].closed,1);});
++test('concurrent operations are serialized and do not race mailbox selection',async()=>{const {m,clients}=fixture();const order=[];try{await Promise.all([m.readonly(async()=>{order.push('a');await new Promise(r=>setTimeout(r,10));order.push('b');}),m.readonly(()=>order.push('c'))]);assert.deepEqual(order,['a','b','c']);assert.equal(clients.length,1);}finally{await m.close();}});
++test('idle session expires without keeping process alive; next read reconnects',async()=>{const {m,clients}=fixture(10);await m.readonly(()=>1);await new Promise(r=>setTimeout(r,30));assert.equal(m.readClient,null);await m.readonly(()=>2);assert.equal(clients.length,2);await m.close();});
++test('failed connection is replaced for next read, current operation is never retried',async()=>{const {m,clients}=fixture();let attempts=0;await assert.rejects(m.readonly(c=>{attempts++;c.usable=false;throw Error('disconnected');}));assert.equal(attempts,1);await m.readonly(()=>1);assert.equal(clients.length,2);await m.close();});
++test('write transport stays disposable and never borrows the read session',async()=>{const {m,clients}=fixture();await m.readonly(()=>1);await m.imap(c=>c.usable);assert.equal(clients.length,2);assert.equal(clients[1].closed,1);assert.equal(clients[0].closed,0);await m.close();});
++test('status warms read-only mailbox state without searching or fetching a message',async()=>{const {m,clients}=fixture();let locked=false,released=false;const original=m.client;m.client=()=>{const c=original();c.list=async()=>[{path:'INBOX'}];c.getMailboxLock=async(name,args)=>{assert.equal(name,'INBOX');assert.deepEqual(args,{readOnly:true});locked=true;return {release(){released=true;}};};c.search=()=>assert.fail('No query before the call');c.fetchOne=()=>assert.fail('No message prefetch');return c;};m.smtp=()=>({verify:async()=>{},close(){}});try{const result=await m.status();assert.equal(result.imapAuthenticated,true);assert.ok(locked&&released);assert.equal(clients.length,1);}finally{await m.close();}});
+diff --git a/test/read-fetch.test.mjs b/test/read-fetch.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/test/read-fetch.test.mjs
+@@ -0,0 +1,27 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {YahooMail} from '../src/mail.mjs';
++
++function fixture({size=40,validity='123',source=Buffer.from('Subject: Test\r\nContent-Type: text/plain\r\n\r\nActual source')}={}) {
++  const mail=new YahooMail({email:'test@example.com',password:'synthetic'});
++  let fetches=0,released=false;
++  mail.readonly=operation=>operation({
++    mailbox:{uidValidity:validity},
++    getMailboxLock:async(_path,options)=>{assert.equal(options.readOnly,true);return {release(){released=true;}};},
++    fetchOne:async(uid,query,options)=>{fetches++;assert.equal(uid,19);assert.deepEqual(options,{uid:true});assert.deepEqual(query.source,{maxLength:5*1024*1024+1});return {uid,size,source,envelope:{subject:'Test'},flags:new Set()};},
++  });
++  return {mail,counts:()=>({fetches,released})};
++}
++test('metadata and bounded body use one fetch and preserve source parsing',async()=>{
++  const {mail,counts}=fixture();const result=await mail.read({mailbox:'INBOX',uid:19,uidValidity:'123'});
++  assert.equal(result.text,'Actual source');assert.equal(result.untrustedContent,true);assert.deepEqual(counts(),{fetches:1,released:true});
++});
++test('oversized message is refused without parsing its bounded partial source',async()=>{
++  const {mail,counts}=fixture({size:5*1024*1024+2,source:Buffer.from('invalid partial MIME')});
++  const result=await mail.read({mailbox:'INBOX',uid:19,uidValidity:'123'});
++  assert.match(result.bodyUnavailable,/5 MiB/);assert.equal(result.text,undefined);assert.deepEqual(counts(),{fetches:1,released:true});
++});
++test('UID validity mismatch stops before fetching, and releases the mailbox lock',async()=>{
++  const {mail,counts}=fixture({validity:'456'});
++  await assert.rejects(mail.read({mailbox:'INBOX',uid:19,uidValidity:'123'}),/identifiers changed/);assert.deepEqual(counts(),{fetches:0,released:true});
++});

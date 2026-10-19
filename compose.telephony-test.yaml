@@ -1,0 +1,31 @@
+# Activation requires approved routing and owner-created 0600 test-only files.
+# No production state, BWS bootstrap, owner hash or OAuth tokens are mounted.
+services:
+  owned-test-recipient:
+    build: .
+    image: dots-phone:local
+    profiles: [telephony-test]
+    command: [python, -m, dots_phone.test_recipient]
+    user: "10001:10001"
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    ports: ["127.0.0.1:8001:8000"]
+    secrets: [test-runtime, test-campaign]
+    volumes: [recipient-state:/data]
+    networks: [recipient-only]
+    stop_grace_period: 60s
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "3"}
+secrets:
+  test-runtime:
+    file: .secrets/test-runtime.json
+  test-campaign:
+    file: .secrets/test-campaign.json
+volumes:
+  recipient-state:
+networks:
+  recipient-only: {}

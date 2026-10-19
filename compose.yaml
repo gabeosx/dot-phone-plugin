@@ -1,0 +1,40 @@
+name: dots-phone
+x-app: &app
+  build: .
+  image: dots-phone:local
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+  logging:
+    driver: json-file
+    options: {max-size: "5m", max-file: "3"}
+services:
+  phone-app:
+    <<: *app
+    environment:
+      DOTS_PHONE_PROFILE: evaluation
+      DOTS_PHONE_DRY_RUN: "true"
+      DOTS_PHONE_ALLOWED_TEST_NUMBERS: "+12125550100,+12125550101"
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: [phone-state:/data]
+    stop_grace_period: 60s
+  test-recipient:
+    <<: *app
+    profiles: [test]
+    command: [python, -m, dots_phone.recipient]
+    environment: {DOTS_PHONE_PROFILE: evaluation}
+    networks: [test-only]
+    healthcheck: {disable: true}
+  test-runner:
+    <<: *app
+    profiles: [test]
+    command: [python, -m, dots_phone.checks, offline]
+    volumes: ["./artifacts:/artifacts"]
+    networks: [test-only]
+    healthcheck: {disable: true}
+volumes:
+  phone-state:
+networks:
+  test-only: {internal: true}

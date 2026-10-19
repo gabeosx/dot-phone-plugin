@@ -1,0 +1,13 @@
+# A separate synthetic database; no credentials or owner approvals from production.
+services:
+  phone-app:
+    restart: unless-stopped
+    command: [uvicorn, controller_fixture:app, --host, 0.0.0.0, --port, "8000", --no-access-log, --no-proxy-headers]
+    volumes:
+      - controller-verification-state:/data
+      - ./controller_fixture.py:/app/controller_fixture.py:ro
+      - ../../artifacts/pipecat:/artifacts
+  tunnel-client:
+    restart: unless-stopped
+volumes:
+  controller-verification-state:

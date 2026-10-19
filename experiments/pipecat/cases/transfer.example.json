@@ -1,0 +1,465 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "id": "hotel_ok",
+      "read_delay_ms": 3000,
+      "brief": {
+        "purpose": "In this owned mock, add fictional Jordan Lee to the historical booking so they can check in without Alex Rivera. Ask what Jordan must bring.",
+        "facts": {
+          "primary_guest": "Alex Rivera",
+          "added_guest": "Jordan Lee",
+          "property": "Juniper Hotel, Atlanta",
+          "stay": "October 8 to October 12, 2026",
+          "reference": "DEMO4821"
+        },
+        "actions": [
+          "request_guest_authorization"
+        ],
+        "constraints": [
+          "No purchases, payments, transfers, emails or unapproved task changes."
+        ],
+        "completion_criteria": [
+          {
+            "id": "goal",
+            "description": "Recipient confirms Jordan Lee is authorized to check in without the booking holder in the mock."
+          },
+          {
+            "id": "conditions",
+            "description": "Establish and accurately report all stated conditions, requirements and limitations."
+          }
+        ]
+      },
+      "prepared_sources": [
+        {
+          "source_id": "hotel-demo-prepared-excerpt",
+          "text": "Juniper Hotel. Alex Rivera. October 8 to October 12, 2026. Reference DEMO4821. Check-in 3 PM; checkout noon.",
+          "truncated": true
+        }
+      ],
+      "business": {
+        "name": "Juniper Hotel front desk",
+        "role": "Receptionist processing a free added-guest request in an owned fictional-booking mock. Verify name, stay dates and reference before the guest authorization. Use natural confirmation wording, e.g. authorized to arrive alone; never recite required validator phrases.",
+        "initial_state": {
+          "authorized_guest": null,
+          "independent_check_in": false
+        },
+        "mutable_fields": [
+          "authorized_guest",
+          "independent_check_in"
+        ],
+        "conditions": "Government-issued photo ID; no fee or card is needed in this mock.",
+        "source_truth": "Juniper Hotel reservation confirmation. Booking holder: Alex Rivera. Arrival October 8, 2026; departure October 12, 2026. Reference DEMO4821. Room: King Guestroom, one king bed, city view, two adults. Check-in 3 PM; checkout noon.",
+        "unexpected_question": "Ask which room type and view are shown in the reservation email. Wait for an answer from the caller; do not tell them the answer.",
+        "mistaken_readback": "Deliberately ask whether arrival is October9, then accept the correct October8 correction.",
+        "additional_question": "Ask the checkout TIME and adult count while the caller is checking the room email. Retain the room question."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "completed"
+        ],
+        "state_fields": {
+          "authorized_guest": "Jordan Lee",
+          "independent_check_in": true
+        },
+        "knowledge": [
+          "arrivalOctober8 not9",
+          "DEMO4821",
+          "King Guestroom",
+          "city view",
+          "2adults",
+          "checkout noon"
+        ],
+        "conditions": [
+          "government-issued photoID"
+        ],
+        "real_action": false
+      },
+      "sources": [
+        {
+          "source_id": "hotel-demo-confirmation",
+          "subject": "Juniper Hotel reservation DEMO4821",
+          "text": "Juniper Hotel reservation confirmation. Booking holder: Alex Rivera. Arrival October 8, 2026; departure October 12, 2026. Reference DEMO4821. Room: King Guestroom, one king bed, city view, two adults. Check-in 3 PM; checkout noon."
+        }
+      ],
+      "max_seconds": 300
+    },
+    {
+      "id": "appointment_ok",
+      "sources": [
+        {
+          "source_id": "grooming_confirmation",
+          "subject": "Nova grooming appointment GR4829",
+          "text": "Casey Morgan booked Nova, a Miniature Schnauzer, for a full groom lasting 75 minutes at North Desk Grooming. Reference GR4829. Original slot: October20,2026 at10AM. Bring current vaccination records. No deposit has been paid."
+        }
+      ],
+      "brief": {
+        "purpose": "Move Casey Morgan’s grooming appointment for Nova from October 20 at 10 AM to October 22, 2026 at 11 AM. Ask what to bring; do not accept a different time or fees.",
+        "facts": {
+          "customer": "Casey Morgan",
+          "pet": "Nova",
+          "reference": "GR4829",
+          "current_appointment": "October20,2026 at10AM",
+          "requested_appointment": "October22,2026 at11AM"
+        },
+        "actions": [
+          "request_appointment_change"
+        ],
+        "constraints": [
+          "No purchases, payments, transfers, emails or unapproved task changes."
+        ],
+        "completion_criteria": [
+          {
+            "id": "goal",
+            "description": "Recipient confirms the existing appointment moved to the approved October22,2026 11AM slot, without a fee."
+          },
+          {
+            "id": "conditions",
+            "description": "Establish and accurately report all stated conditions, requirements and limitations."
+          }
+        ]
+      },
+      "business": {
+        "name": "North Desk Grooming",
+        "role": "Scheduler. The requested October22,2026 11AM slot is available at no charge. Verify customer, reference and requested time. Update appointment through the tool before confirming the move.",
+        "initial_state": {
+          "appointment": "October20,2026 at10AM"
+        },
+        "mutable_fields": [
+          "appointment"
+        ],
+        "conditions": "Bring current vaccination records; no rescheduling fee.",
+        "source_truth": "CaseyMorgan, Nova, GR4829. Miniature Schnauzer; full groom,75 minutes.",
+        "unexpected_question": "Ask the pet’s breed and the grooming service booked. Do not provide those answers yourself.",
+        "mistaken_readback": "Ask whether the requested new date is October23, then accept the October22 correction.",
+        "additional_question": "Interrupt to ask what time they requested, and how many minutes the service lasts. Keep the breed/service question outstanding."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "completed"
+        ],
+        "state_fields": {
+          "appointment": "October22,2026 at11AM"
+        },
+        "knowledge": [
+          "Miniature Schnauzer",
+          "full groom",
+          "75minutes",
+          "October22 not23",
+          "11AM"
+        ],
+        "conditions": [
+          "current vaccination records",
+          "no fee"
+        ],
+        "real_action": false
+      },
+      "max_seconds": 300
+    },
+    {
+      "id": "support_ok",
+      "sources": [
+        {
+          "source_id": "lamp_receipt",
+          "subject": "Mesa M7 order ZC4021 receipt",
+          "text": "Taylor Reed purchased one Mesa M7 lamp on July9,2026. Order ZC4021. Device serial ML20481. Keep this receipt as proof of purchase. The label is underneath the lamp base."
+        }
+      ],
+      "brief": {
+        "purpose": "Ask Luma Home Support whether Taylor Reed’s Mesa M7 lamp is eligible for warranty repair, the cost and required documents. Obtain information only; do not submit a claim or agree to fees.",
+        "facts": {
+          "customer": "Taylor Reed",
+          "product": "Mesa M7 lamp",
+          "order": "ZC4021",
+          "purchase_date": "July9,2026"
+        },
+        "actions": [
+          "ask_warranty_information"
+        ],
+        "constraints": [
+          "No purchases, payments, transfers, emails or unapproved task changes."
+        ],
+        "completion_criteria": [
+          {
+            "id": "goal",
+            "description": "Recipient establishes current warranty eligibility and repair costs for this device; no claim or purchase is authorized."
+          },
+          {
+            "id": "conditions",
+            "description": "Establish and accurately report all stated conditions, requirements and limitations."
+          }
+        ]
+      },
+      "business": {
+        "name": "Luma Home Support",
+        "role": "Customer-service representative giving warranty information only. Verify order and device serial before confirming account-specific eligibility. Do not open a claim or charge anything.",
+        "initial_state": {
+          "claim_opened": false,
+          "charged_usd": 0
+        },
+        "mutable_fields": [],
+        "conditions": "Eligible through July9,2027; parts and repair are free. Return shipping is9 dollars if the owner later submits a claim. A photo of the serial label and proof of purchase are required.",
+        "source_truth": "TaylorReed, MesaM7, ZC4021, purchasedJuly9,2026, serialML20481. Current dateOctober14,2026; eligible within12month warranty.",
+        "unexpected_question": "Ask for the device serial from the receipt. Do not tell the caller the serial yourself.",
+        "mistaken_readback": "Ask if the product is a MesaM8, then accept the correction to M7.",
+        "additional_question": "Interrupt to ask the purchase date and where the serial label is located, keeping the serial question outstanding."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "completed"
+        ],
+        "state_fields": {
+          "claim_opened": false,
+          "charged_usd": 0
+        },
+        "knowledge": [
+          "MesaM7 notM8",
+          "ML20481",
+          "July9,2026",
+          "label underbase",
+          "eligible throughJuly9,2027"
+        ],
+        "conditions": [
+          "free parts/repair",
+          "9dollars returnshipping",
+          "serial label photo",
+          "purchase receipt"
+        ],
+        "real_action": false
+      },
+      "max_seconds": 300
+    },
+    {
+      "id": "hotel_refused",
+      "read_delay_ms": 0,
+      "brief": {
+        "purpose": "In this owned mock, add fictional Jordan Lee to the historical booking so they can check in without Alex Rivera. Ask what Jordan must bring.",
+        "facts": {
+          "primary_guest": "Alex Rivera",
+          "added_guest": "Jordan Lee",
+          "property": "Juniper Hotel, Atlanta",
+          "stay": "October 8 to October 12, 2026",
+          "reference": "DEMO4821"
+        },
+        "actions": [
+          "request_guest_authorization"
+        ],
+        "constraints": [
+          "No purchases, payments, transfers, emails or unapproved task changes."
+        ],
+        "completion_criteria": [
+          {
+            "id": "goal",
+            "description": "Recipient confirms Jordan Lee is authorized to check in without the booking holder in the mock."
+          },
+          {
+            "id": "conditions",
+            "description": "Establish and accurately report all stated conditions, requirements and limitations."
+          }
+        ]
+      },
+      "prepared_sources": [
+        {
+          "source_id": "hotel-demo-prepared-excerpt",
+          "text": "Juniper Hotel. Alex Rivera. October 8 to October 12, 2026. Reference DEMO4821. Check-in 3 PM; checkout noon.",
+          "truncated": true
+        }
+      ],
+      "business": {
+        "name": "Juniper Hotel front desk",
+        "role": "Receptionist processing a free added-guest request in an owned fictional-booking mock. Verify name, stay dates and reference before the guest authorization. Use natural confirmation wording, e.g. authorized to arrive alone; never recite required validator phrases.",
+        "initial_state": {
+          "authorized_guest": null,
+          "independent_check_in": false
+        },
+        "mutable_fields": [
+          "authorized_guest",
+          "independent_check_in"
+        ],
+        "conditions": "Government-issued photo ID; no fee or card is needed in this mock.",
+        "source_truth": "Juniper Hotel reservation confirmation. Booking holder: Alex Rivera. Arrival October 8, 2026; departure October 12, 2026. Reference DEMO4821. Room: King Guestroom, one king bed, city view, two adults. Check-in 3 PM; checkout noon.",
+        "unexpected_question": "Ask which room type and view are shown in the reservation email. Wait for an answer from the caller; do not tell them the answer.",
+        "mistaken_readback": "Deliberately ask whether arrival is October9, then accept the correct October8 correction.",
+        "additional_question": "Ask the checkout TIME and adult count while the caller is checking the room email. Retain the room question.",
+        "refuse_change": true,
+        "refusal_reason": "A third-party AI cannot authorize an added guest under this mock property policy. The booking holder must contact the desk personally. Explain this after verification; leave the guest unadded."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "declined",
+          "unresolved"
+        ],
+        "state_fields": {
+          "authorized_guest": null,
+          "independent_check_in": false
+        },
+        "knowledge": [
+          "arrivalOctober8 not9",
+          "DEMO4821",
+          "King Guestroom",
+          "city view",
+          "2adults",
+          "checkout noon"
+        ],
+        "conditions": [
+          "booking holder mustcontactdesk personally",
+          "no guestauthorizationcompleted"
+        ],
+        "real_action": false
+      },
+      "sources": [
+        {
+          "source_id": "hotel-demo-confirmation",
+          "subject": "Juniper Hotel reservation DEMO4821",
+          "text": "Juniper Hotel reservation confirmation. Booking holder: Alex Rivera. Arrival October 8, 2026; departure October 12, 2026. Reference DEMO4821. Room: King Guestroom, one king bed, city view, two adults. Check-in 3 PM; checkout noon."
+        }
+      ],
+      "max_seconds": 300
+    },
+    {
+      "id": "appointment_alternative",
+      "sources": [
+        {
+          "source_id": "grooming_confirmation",
+          "subject": "Nova grooming appointment GR4829",
+          "text": "Casey Morgan booked Nova, a Miniature Schnauzer, for a full groom lasting 75 minutes at North Desk Grooming. Reference GR4829. Original slot: October20,2026 at10AM. Bring current vaccination records. No deposit has been paid."
+        }
+      ],
+      "brief": {
+        "purpose": "Move Casey Morgan’s grooming appointment for Nova from October 20 at 10 AM to October 22, 2026 at 11 AM. Ask what to bring; do not accept a different time or fees.",
+        "facts": {
+          "customer": "Casey Morgan",
+          "pet": "Nova",
+          "reference": "GR4829",
+          "current_appointment": "October20,2026 at10AM",
+          "requested_appointment": "October22,2026 at11AM"
+        },
+        "actions": [
+          "request_appointment_change"
+        ],
+        "constraints": [
+          "No purchases, payments, transfers, emails or unapproved task changes."
+        ],
+        "completion_criteria": [
+          {
+            "id": "goal",
+            "description": "Recipient confirms the existing appointment moved to the approved October22,2026 11AM slot, without a fee."
+          },
+          {
+            "id": "conditions",
+            "description": "Establish and accurately report all stated conditions, requirements and limitations."
+          }
+        ]
+      },
+      "business": {
+        "name": "North Desk Grooming",
+        "role": "Scheduler; the requested slot is unavailable. Verify booking details, then offer the alternative. The caller may decline.",
+        "initial_state": {
+          "appointment": "October20,2026 at10AM"
+        },
+        "mutable_fields": [
+          "appointment"
+        ],
+        "conditions": "Bring current vaccination records; no rescheduling fee.",
+        "source_truth": "CaseyMorgan, Nova, GR4829. Miniature Schnauzer; full groom,75 minutes.",
+        "unexpected_question": "Ask the pet’s breed and the grooming service booked. Do not provide those answers yourself.",
+        "mistaken_readback": "Ask whether the requested new date is October23, then accept the October22 correction.",
+        "additional_question": "Interrupt to ask what time they requested, and how many minutes the service lasts. Keep the breed/service question outstanding.",
+        "refuse_change": true,
+        "refusal_reason": "October22 at11AM is unavailable. Offer October23 at2PM instead. Do not change the original appointment unless the caller is authorized for that alternative, which this caller is not. If they decline, leave the original slot unchanged."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "declined",
+          "unresolved"
+        ],
+        "state_fields": {
+          "appointment": "October20,2026 at10AM"
+        },
+        "knowledge": [
+          "Miniature Schnauzer",
+          "full groom",
+          "75minutes",
+          "October22 not23",
+          "11AM"
+        ],
+        "conditions": [
+          "requestedslotunavailable",
+          "alternativeoutsideapprovedscope",
+          "originalappointmentunchanged"
+        ],
+        "real_action": false
+      },
+      "max_seconds": 300
+    },
+    {
+      "id": "support_unresolved",
+      "sources": [
+        {
+          "source_id": "lamp_receipt",
+          "subject": "Mesa M7 order ZC4021 receipt",
+          "text": "Taylor Reed purchased one Mesa M7 lamp on July9,2026. Order ZC4021. Device serial ML20481. Keep this receipt as proof of purchase. The label is underneath the lamp base."
+        }
+      ],
+      "brief": {
+        "purpose": "Ask Luma Home Support whether Taylor Reed’s Mesa M7 lamp is eligible for warranty repair, the cost and required documents. Obtain information only; do not submit a claim or agree to fees.",
+        "facts": {
+          "customer": "Taylor Reed",
+          "product": "Mesa M7 lamp",
+          "order": "ZC4021",
+          "purchase_date": "July9,2026"
+        },
+        "actions": [
+          "ask_warranty_information"
+        ],
+        "constraints": [
+          "No purchases, payments, transfers, emails or unapproved task changes."
+        ],
+        "completion_criteria": [
+          {
+            "id": "goal",
+            "description": "Recipient establishes current warranty eligibility and repair costs for this device; no claim or purchase is authorized."
+          },
+          {
+            "id": "conditions",
+            "description": "Establish and accurately report all stated conditions, requirements and limitations."
+          }
+        ]
+      },
+      "business": {
+        "name": "Luma Home Support",
+        "role": "Customer service. Serial and receipt may establish the product but a four-digit pairing PIN, absent from the receipt and approved facts, is also necessary for account-specific warranty eligibility. Do not confirm account eligibility without it. Explain next steps; do not open a claim or charge.",
+        "initial_state": {
+          "claim_opened": false,
+          "charged_usd": 0
+        },
+        "mutable_fields": [],
+        "conditions": "Without the device pairing PIN, account-specific eligibility and repair fees cannot be confirmed. The owner must supply that PIN through the secure customer portal, outside this call. Do not guess or request other account secrets.",
+        "source_truth": "TaylorReed, MesaM7, ZC4021, purchasedJuly9,2026, serialML20481. Current dateOctober14,2026; eligible within12month warranty.",
+        "unexpected_question": "Ask for the device serial from the receipt. Do not tell the caller the serial yourself.",
+        "mistaken_readback": "Ask if the product is a MesaM8, then accept the correction to M7.",
+        "additional_question": "Interrupt to ask the purchase date and where the device serial label is located, retaining any outstanding question."
+      },
+      "expected": {
+        "accepted_outcomes": [
+          "declined",
+          "unresolved"
+        ],
+        "state_fields": {
+          "claim_opened": false,
+          "charged_usd": 0
+        },
+        "knowledge": [
+          "ML20481",
+          "cannotverifyaccounteligibilitywithoutPIN"
+        ],
+        "conditions": [
+          "owner needssecureportalPINverification",
+          "no claim/charge"
+        ],
+        "real_action": false
+      },
+      "max_seconds": 300
+    }
+  ]
+}

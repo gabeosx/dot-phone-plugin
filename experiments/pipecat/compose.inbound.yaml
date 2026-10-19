@@ -1,0 +1,43 @@
+name: dots-pipecat-inbound
+services:
+  inbound-demo:
+    image: dots-phone-pipecat:local
+    build: {context: ../.., dockerfile: experiments/pipecat/Dockerfile.phone}
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=256m"]
+    secrets: [inbound-runtime]
+    environment:
+      PIPECAT_INBOUND_ORIGIN: "${PIPECAT_INBOUND_ORIGIN:?Verified public media origin}"
+      PIPECAT_INBOUND_CALLER: "${PIPECAT_INBOUND_CALLER:?Verified caller}"
+      PIPECAT_INBOUND_NUMBER: "${PIPECAT_INBOUND_NUMBER:?Account trial number}"
+      # Current Twilio trials strip Stream. Enable only on a full account.
+      PIPECAT_INBOUND_STREAMING_ENABLED: "${PIPECAT_INBOUND_STREAMING_ENABLED:-false}"
+      PIPECAT_OWNED_BOT_ENABLED: "${PIPECAT_OWNED_BOT_ENABLED:-false}"
+      PIPECAT_OWNED_BOT_DIRECTORY: "${PIPECAT_OWNED_BOT_DIRECTORY:-/artifacts/carrier-current}"
+      PIPECAT_OWNED_BOT_ASSETS: "${PIPECAT_OWNED_BOT_ASSETS:-/artifacts/inputs/assets}"
+      PIPECAT_OWNED_BOT_SUPERVISED: "${PIPECAT_OWNED_BOT_SUPERVISED:-false}"
+      PIPECAT_INBOUND_BACKEND_MODEL: "${PIPECAT_INBOUND_BACKEND_MODEL:-gpt-5.6-luna}"
+      PIPECAT_INBOUND_BACKEND_EFFORT: "${PIPECAT_INBOUND_BACKEND_EFFORT:-none}"
+      PIPECAT_INBOUND_BACKEND_SERVICE_TIER: "${PIPECAT_INBOUND_BACKEND_SERVICE_TIER:-auto}"
+      PIPECAT_INBOUND_EARLY_RESULT: "${PIPECAT_INBOUND_EARLY_RESULT:-false}"
+      PIPECAT_INBOUND_PREFETCH: "${PIPECAT_INBOUND_PREFETCH:-false}"
+      PIPECAT_INBOUND_ENGINE: "${PIPECAT_INBOUND_ENGINE:-live}"
+      PIPECAT_INBOUND_PROMPT: "${PIPECAT_INBOUND_PROMPT:-original}"
+      PIPECAT_INBOUND_REALTIME_EFFORT: "${PIPECAT_INBOUND_REALTIME_EFFORT:-low}"
+    command: [uvicorn, inbound_demo:app, --host, 0.0.0.0, --port, "8000", --no-access-log, --no-proxy-headers]
+    ports: ["127.0.0.1:8853:8000"]
+    volumes: ["../../artifacts/pipecat:/artifacts"]
+  media-tunnel:
+    image: cloudflare/cloudflared:2026.10.0
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    command: [tunnel, --no-autoupdate, --url, "http://inbound-demo:8000"]
+secrets:
+  inbound-runtime: {file: ../../.secrets/pipecat-inbound-runtime.json}

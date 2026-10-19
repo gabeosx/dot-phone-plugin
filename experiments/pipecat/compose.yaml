@@ -1,0 +1,59 @@
+name: dots-pipecat-spike
+x-runtime: &runtime
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=256m"]
+  logging:
+    driver: json-file
+    options: {max-size: "5m", max-file: "2"}
+x-app: &app
+  <<: *runtime
+  build: .
+  image: dots-pipecat-spike:local
+  volumes: ["../../artifacts/pipecat:/artifacts"]
+  networks: [private]
+services:
+  phone-app:
+    <<: *app
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  test-runner:
+    <<: *app
+    profiles: [test]
+    command: [python, run_baseline.py]
+  tests:
+    <<: *app
+    profiles: [test]
+    command: [python, -m, pytest, -q, -p, no:cacheprovider]
+  probe:
+    <<: *app
+    profiles: [test]
+    command: [python, probe.py]
+    depends_on:
+      phone-app: {condition: service_healthy}
+  tunnel-client:
+    <<: *runtime
+    profiles: [tunnel]
+    build: {context: ., dockerfile: Dockerfile.tunnel}
+    image: dots-pipecat-tunnel:local
+    networks: [private, egress]
+    secrets: [tunnel-key]
+    depends_on:
+      phone-app: {condition: service_healthy}
+    command:
+      - run
+      - --control-plane.tunnel-id=${DOTS_PIPECAT_TUNNEL_ID:-}
+      - --control-plane.api-key=file:/run/secrets/tunnel-key
+      - --mcp.server-url=http://phone-app:8000/mcp
+      - --health.listen-addr=127.0.0.1:8080
+secrets:
+  tunnel-key:
+    file: ../../.secrets/pipecat-tunnel-key
+networks:
+  private: {internal: true}
+  egress: {}

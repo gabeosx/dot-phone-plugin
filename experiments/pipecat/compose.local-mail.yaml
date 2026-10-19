@@ -1,0 +1,7 @@
+services:
+  phone-app:
+    environment:
+      DOTS_PHONE_LOCAL_MAIL_WORKER_DIRECTORY: /worker
+      DOTS_PHONE_DECISION_TIMEOUT_SECONDS: "60"
+    volumes:
+      - ${DOTS_PHONE_LOCAL_MAIL_WORKER_HOST_DIRECTORY:?Private mail worker directory required}:/worker

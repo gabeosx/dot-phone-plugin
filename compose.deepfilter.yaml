@@ -1,0 +1,19 @@
+# Opt-in native runtime. Omit this overlay and keep INPUT_FILTER=off to roll back.
+services:
+  phone-app:
+    image: dots-phone-deepfilter:local
+    build:
+      context: .
+      dockerfile: experiments/pipecat/Dockerfile.deepfilter
+      args: {BASE_IMAGE: "${DOTS_PHONE_DEEPFILTER_BASE_IMAGE:-dots-phone-local:local}"}
+    environment:
+      DOTS_PHONE_PIPECAT_INPUT_FILTER: "${DOTS_PHONE_PIPECAT_INPUT_FILTER:-deepfilter}"
+      DOTS_PHONE_DEEPFILTER_MODEL_PATH: /models/deepfilter/DeepFilterNet3_onnx.tar.gz
+      DOTS_PHONE_DEEPFILTER_LIBRARY_PATH: /opt/deepfilter/lib/libdf.so
+      DOTS_PHONE_DEEPFILTER_FRAME_TIMEOUT_MS: "${DOTS_PHONE_DEEPFILTER_FRAME_TIMEOUT_MS:-100}"
+    volumes:
+      - type: bind
+        source: "${DOTS_PHONE_DEEPFILTER_MODEL_FILE:?Run python -m dots_phone.deepfilter_setup outside the checkout first}"
+        target: /models/deepfilter/DeepFilterNet3_onnx.tar.gz
+        read_only: true
+        bind: {create_host_path: false}

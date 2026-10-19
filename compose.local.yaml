@@ -1,0 +1,112 @@
+# Run on the installer's computer. No central application server or shared account.
+name: dots-phone-local
+x-local: &local
+  build: {context: ., dockerfile: experiments/pipecat/Dockerfile.phone}
+  image: dots-phone-local:local
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=256m"]
+  logging: {driver: json-file, options: {max-size: "5m", max-file: "3"}}
+services:
+  phone-app:
+    <<: *local
+    environment:
+      DOTS_PHONE_PROFILE: production
+      DOTS_PHONE_DRY_RUN: "${DOTS_PHONE_DRY_RUN:-true}"
+      DOTS_PHONE_VOICE_BACKEND: "${DOTS_PHONE_VOICE_BACKEND:-pipecat}"
+      DOTS_PHONE_PIPECAT_ENGINE: "${DOTS_PHONE_PIPECAT_ENGINE:-realtime}"
+      DOTS_PHONE_PIPECAT_REALTIME_MODEL: "${DOTS_PHONE_PIPECAT_REALTIME_MODEL:-gpt-realtime-2.1}"
+      DOTS_PHONE_PIPECAT_TURN_DETECTION: "${DOTS_PHONE_PIPECAT_TURN_DETECTION:-semantic_vad}"
+      DOTS_PHONE_PIPECAT_VAD_EAGERNESS: "${DOTS_PHONE_PIPECAT_VAD_EAGERNESS:-high}"
+      DOTS_PHONE_PIPECAT_VAD_SILENCE_MS: "${DOTS_PHONE_PIPECAT_VAD_SILENCE_MS:-1000}"
+      DOTS_PHONE_GENERAL_VAD_THRESHOLD: "${DOTS_PHONE_GENERAL_VAD_THRESHOLD:-0.5}"
+      DOTS_PHONE_GENERAL_VAD_IDLE_TIMEOUT_MS: "${DOTS_PHONE_GENERAL_VAD_IDLE_TIMEOUT_MS:-0}"
+      DOTS_PHONE_GENERAL_TURN_DETECTION: "${DOTS_PHONE_GENERAL_TURN_DETECTION:-server_vad}"
+      DOTS_PHONE_PIPECAT_NOISE_REDUCTION: "${DOTS_PHONE_PIPECAT_NOISE_REDUCTION:-off}"
+      DOTS_PHONE_PIPECAT_INPUT_FILTER: "${DOTS_PHONE_PIPECAT_INPUT_FILTER:-off}"
+      DOTS_PHONE_TEST_STOP_ON_HUMAN: "${DOTS_PHONE_TEST_STOP_ON_HUMAN:-false}"
+      DOTS_PHONE_TEST_RESPONSE_LIMIT: "${DOTS_PHONE_TEST_RESPONSE_LIMIT:-0}"
+      DOTS_PHONE_TRACE_REALTIME_STAGES: "${DOTS_PHONE_TRACE_REALTIME_STAGES:-false}"
+      DOTS_PHONE_POST_CALL_AUDIO_MODEL_DIRECTORY: "${DOTS_PHONE_POST_CALL_AUDIO_MODEL_DIRECTORY:-}"
+      DOTS_PHONE_POST_CALL_AUDIO_CONFIRMATION_MODEL_DIRECTORY: "${DOTS_PHONE_POST_CALL_AUDIO_CONFIRMATION_MODEL_DIRECTORY:-}"
+      DOTS_PHONE_PUBLIC_BASE_URL: "${DOTS_PHONE_PUBLIC_BASE_URL:-https://configure.invalid}"
+      DOTS_PHONE_MEDIA_BASE_URL: "${DOTS_PHONE_MEDIA_BASE_URL:-https://configure.invalid}"
+      DOTS_PHONE_MCP_RESOURCE_URL: "${DOTS_PHONE_MCP_RESOURCE_URL:-}"
+      DOTS_PHONE_MCP_METADATA_BASE_URL: http://phone-app:8000
+      DOTS_PHONE_TWILIO_PHONE_NUMBER: "${DOTS_PHONE_TWILIO_PHONE_NUMBER:-}"
+      DOTS_PHONE_ALLOWED_TEST_NUMBERS: "${DOTS_PHONE_ALLOWED_TEST_NUMBERS:-}"
+      DOTS_PHONE_CALLBACK_HOSTS: "${DOTS_PHONE_CALLBACK_HOSTS:-}"
+      DOTS_PHONE_OAUTH_REDIRECT_URIS: "${DOTS_PHONE_OAUTH_REDIRECT_URIS:-}"
+      DOTS_PHONE_DESTINATION_POLICY: "${DOTS_PHONE_DESTINATION_POLICY:-task_scope}"
+      DOTS_PHONE_ACCOUNT_TASKS: "${DOTS_PHONE_ACCOUNT_TASKS:-true}"
+      DOTS_PHONE_LOCAL_REASONER_ENABLED: "${DOTS_PHONE_LOCAL_REASONER_ENABLED:-true}"
+      DOTS_PHONE_LOCAL_REASONER_MODEL: "${DOTS_PHONE_LOCAL_REASONER_MODEL:-gpt-6-sol}"
+      DOTS_PHONE_LOCAL_REASONER_EFFORT: "${DOTS_PHONE_LOCAL_REASONER_EFFORT:-medium}"
+      DOTS_PHONE_LOCAL_REASONER_RESPONSE_POLICY: "${DOTS_PHONE_LOCAL_REASONER_RESPONSE_POLICY:-direct_with_codex}"
+      DOTS_PHONE_LOCAL_REASONER_VOICE_EFFORT: "${DOTS_PHONE_LOCAL_REASONER_VOICE_EFFORT:-medium}"
+      DOTS_PHONE_LOCAL_REASONER_DIRECTORY: "${DOTS_PHONE_LOCAL_REASONER_DIRECTORY:-/reasoner}"
+      DOTS_PHONE_DECISION_TIMEOUT_SECONDS: "${DOTS_PHONE_DECISION_TIMEOUT_SECONDS:-60}"
+      DOTS_PHONE_CALL_AUTHORIZATION_MODE: "${DOTS_PHONE_CALL_AUTHORIZATION_MODE:-connected_owner}"
+      DOTS_PHONE_CONNECTED_CALL_BUDGET_USD: "${DOTS_PHONE_CONNECTED_CALL_BUDGET_USD:-3}"
+      DOTS_PHONE_CONNECTED_DAILY_BUDGET_USD: "${DOTS_PHONE_CONNECTED_DAILY_BUDGET_USD:-10}"
+      DOTS_PHONE_PIPECAT_ACCOUNT_DTMF: "${DOTS_PHONE_PIPECAT_ACCOUNT_DTMF:-true}"
+      DOTS_PHONE_MAX_CALL_SECONDS: "${DOTS_PHONE_MAX_CALL_SECONDS:-600}"
+      DOTS_PHONE_CALL_STATE_WAIT_SECONDS: "${DOTS_PHONE_CALL_STATE_WAIT_SECONDS:-8}"
+      DOTS_PHONE_MAX_CONCURRENT_CALLS: "${DOTS_PHONE_MAX_CONCURRENT_CALLS:-1}"
+      DOTS_PHONE_RETAIN_RECORDING: "${DOTS_PHONE_RETAIN_RECORDING:-true}"
+      DOTS_PHONE_RETAIN_TRANSCRIPT: "${DOTS_PHONE_RETAIN_TRANSCRIPT:-true}"
+      DOTS_PHONE_RETENTION_SECONDS: "${DOTS_PHONE_RETENTION_SECONDS:-86400}"
+    secrets: [runtime]
+    volumes:
+      - local-state:/data
+      - "${DOTS_PHONE_LOCAL_REASONER_HOST_DIRECTORY:-./.secrets/reasoner}:${DOTS_PHONE_LOCAL_REASONER_DIRECTORY:-/reasoner}"
+    networks: [private, egress]
+    stop_grace_period: 60s
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 10s
+      retries: 10
+  owner-ingress:
+    <<: *local
+    command: [uvicorn, dots_phone.ingress:create_gateway, --factory, --host, 0.0.0.0, --port, "8000", --no-access-log, --no-proxy-headers]
+    environment: {DOTS_PHONE_INGRESS_KIND: owner}
+    networks: [private, owner-edge]
+    ports: ["127.0.0.1:8852:8000"]
+  media-ingress:
+    <<: *local
+    command: [uvicorn, dots_phone.ingress:create_gateway, --factory, --host, 0.0.0.0, --port, "8000", --no-access-log, --no-proxy-headers]
+    environment: {DOTS_PHONE_INGRESS_KIND: media}
+    networks: [private, media-edge]
+    ports: ["127.0.0.1:8851:8000"]
+  tunnel-client:
+    profiles: [connection]
+    build: {context: experiments/pipecat, dockerfile: Dockerfile.tunnel}
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]
+    networks: [private, egress]
+    secrets: [tunnel-key]
+    depends_on: {phone-app: {condition: service_healthy}}
+    command:
+      - run
+      - "--control-plane.tunnel-id=${DOTS_PIPECAT_TUNNEL_ID:-}"
+      - --control-plane.api-key=file:/run/secrets/tunnel-key
+      - --mcp.server-url=http://phone-app:8000/mcp
+      - --health.listen-addr=127.0.0.1:8080
+      - "--mcp.oauth-trusted-origin=${DOTS_PHONE_PUBLIC_BASE_URL:-https://configure.invalid}"
+      - --harpoon.allow-plaintext-http
+      - "--harpoon.hosts-include-regex=^phone-app$$"
+secrets:
+  runtime: {file: "${DOTS_PHONE_RUNTIME_FILE:-./.secrets/runtime.json}"}
+  tunnel-key: {file: "${DOTS_PHONE_TUNNEL_KEY_FILE:-./.secrets/tunnel-key}"}
+volumes:
+  local-state:
+networks:
+  private: {internal: true}
+  egress: {}
+  owner-edge: {}
+  media-edge: {}

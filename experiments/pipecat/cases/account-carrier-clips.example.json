@@ -1,0 +1,9 @@
+{
+  "menu-2": "For flight bookings press one. For account information press two. To redeem points press three.",
+  "menu-5": "For flight bookings press one. For account information press five. To redeem points press three.",
+  "menu-7": "For flight bookings press one. For account information press seven. To redeem points press three.",
+  "verification": "Please enter your member number followed by the pound key.",
+  "hold": "Thank you. Please hold while I connect you to account service.",
+  "agent": "Hello, Harbor Rewards account service. Who are you assisting, and what is the member's postal code?",
+  "balance": "The current redeemable points balance is thirty seven thousand four hundred twenty one. Let me correct that: the current redeemable balance is thirty seven thousand four hundred twelve. There are also twelve hundred pending points, which are excluded from the redeemable balance. No account changes have been made. That is the balance today. Thank you, goodbye."
+}

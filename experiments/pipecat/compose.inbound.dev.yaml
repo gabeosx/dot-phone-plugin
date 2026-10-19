@@ -1,0 +1,13 @@
+# Read-only source mounts for the isolated prototype. Reload by recreating the
+# receiver only; leave the media tunnel running so its origin stays unchanged.
+services:
+  inbound-demo:
+    volumes:
+      - ../../dots_phone:/app/dots_phone:ro
+      - ./inbound_demo.py:/app/inbound_demo.py:ro
+      - ./owned_bot.py:/app/owned_bot.py:ro
+      - ./account_clerk.py:/app/account_clerk.py:ro
+      - ./hotel_clerk.py:/app/hotel_clerk.py:ro
+      - ./bot.py:/app/bot.py:ro
+      - ./early_lookup.py:/app/early_lookup.py:ro
+      - ./realtime_probe.py:/app/realtime_probe.py:ro

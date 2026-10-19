@@ -1,0 +1,22 @@
+{
+  "synthetic": true,
+  "proposal": {
+    "outcome": "completed",
+    "evidence": [
+      {
+        "criterion_id": "balance",
+        "text": "Available rewards balance is 4,800 points."
+      }
+    ],
+    "unresolved_questions": []
+  },
+  "recipient_entries": [
+    {
+      "at_ms": 1000,
+      "recipient_item_id": "synthetic-reward-turn",
+      "recipient_turn": 1,
+      "role": "user",
+      "text": "You have 4,800 available rewards points. This inquiry is complete."
+    }
+  ]
+}

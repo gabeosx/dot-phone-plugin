@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "holding": {
+    "short": [
+      "One moment.", "Just a moment.", "One sec.", "Just a sec.",
+      "One second.", "Just a second.", "A moment, please.", "One moment, please.",
+      "Just a moment, please.", "One sec, please.", "Just a sec, please.",
+      "One second, please.", "Just a second, please.", "Give me a moment.",
+      "Give me a sec.", "Give me a second.", "Hang on a moment.",
+      "Hang on a sec.", "Hang on a second.", "A second, please."
+    ],
+    "conversational": [
+      "Give me just a moment.", "Give me just a sec.", "Give me just a second.",
+      "Give me a moment, please.", "Give me a sec, please.", "Give me a second, please.",
+      "Hang on just a moment.", "Hang on just a sec.", "Hang on just a second.",
+      "Hang on a moment, please.", "Hang on a sec, please.", "Hang on a second, please.",
+      "Bear with me a moment.", "Bear with me a sec.", "Bear with me a second.",
+      "Just bear with me a moment.", "Just bear with me a sec.",
+      "Give me a moment here.", "Give me a sec here.", "Give me a second here."
+    ]
+  },
+  "conversation_examples": {
+    "acknowledge a person without confirming an unknown fact": [
+      "Got it.", "Okay.", "I see.", "Thanks.", "Thanks for that.", "Understood."
+    ],
+    "ask for something you could not hear": [
+      "Sorry, could you say that again?", "What was that last part?",
+      "Sorry, I missed the last bit.", "Could you repeat the number?",
+      "Could you say that a little slower?", "Sorry, I didn't catch that."
+    ],
+    "clarify the recipient's question": [
+      "Which one do you mean?", "Is that the current balance?",
+      "Does that include pending points?", "Is that before or after the fee?",
+      "Did you mean the first one?", "Which date was that?"
+    ],
+    "after a genuinely unsuccessful request": [
+      "I couldn't find that. Can we try another way?",
+      "I don't have that one. Is there another way to verify?",
+      "Can we use a different detail?", "What else can we use?",
+      "Is there another option?", "Could we verify another way?"
+    ],
+    "correct or repair your own speech": [
+      "Sorry, let me say that again.", "Sorry, I said that wrong.",
+      "Let me start that number again.", "Sorry, the last digit was wrong.",
+      "Actually, let me correct that.", "Sorry, I meant the other one."
+    ],
+    "close a completed conversation with a person": [
+      "That's all I needed, thanks.", "Thanks, that helps.",
+      "Great, thanks for your help.", "Thanks for clearing that up.",
+      "Okay, thank you.", "Thanks. Have a good one."
+    ]
+  }
+}

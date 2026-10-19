@@ -1,0 +1,34 @@
+name: gpt_live_baseline
+user: {modality: audio}
+# This caption/tool scenario never instantiates STT. A later perceptual audio
+# evaluation must assert response and install/run the declared transcriber.
+judge: {modality: audio, transcription: {service: moonshine, model: small-streaming}}
+scenarios:
+  - name: interruption_lookup_hangup
+    turns:
+      - user: "Tell me a long story about a museum."
+        audio: assets/story.wav
+        expect:
+          - event: bot_started_speaking
+            within_ms: 15000
+          - event: tts_response
+            within_ms: 15000
+      - user: "Stop the story. Look up what time the museum closes."
+        audio: assets/interrupt.wav
+        send_after: {event: tts_response, delay_ms: 2500}
+        expect:
+          - event: function_call
+            calls: [{name: lookup_hours, args: {place: museum}}]
+            within_ms: 15000
+          - event: tts_response
+            text_contains: PM
+            within_ms: 15000
+      - user: "Thank you. End the call now."
+        audio: assets/hangup.wav
+        expect:
+          - event: function_call
+            calls: [{name: end_call}]
+            within_ms: 15000
+          - event: function_call_stopped
+            calls: [{name: end_call, args: {cancelled: false}}]
+            within_ms: 15000

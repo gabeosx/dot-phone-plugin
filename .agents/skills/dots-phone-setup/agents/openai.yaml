@@ -1,0 +1,4 @@
+interface:
+  display_name: "Set up Dots Phone"
+  short_description: "Install Dots Phone with local filtering and no dialing"
+  default_prompt: "Use $dots-phone-setup to set up this repository with local filtering and verify it without dialing."

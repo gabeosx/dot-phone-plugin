@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import copy
 import hashlib
 import json
 import math
@@ -94,6 +95,50 @@ def accepted_native_input_configuration(session):
     return accepted
 
 
+def sdk_session_message(event, original):
+    """Adapt only documented transcription metadata absent from Pipecat 1.12.
+
+    The original provider acknowledgement is observed first. These hints do not
+    control SDK audio or transcription handling; its constructor rejects them
+    before the session can become ready. Preserve every supported field and
+    every non-session event, including the actual transcription text.
+    """
+    if event.get("type") not in {"session.created", "session.updated"}:
+        return original
+    session = event.get("session")
+    audio = session.get("audio") if isinstance(session, dict) else None
+    inputs = audio.get("input") if isinstance(audio, dict) else None
+    transcription = inputs.get("transcription") if isinstance(inputs, dict) else None
+    if not isinstance(transcription, dict) or transcription.get("model") not in {
+        "gpt-transcribe",
+        "gpt-realtime-whisper",
+    }:
+        return original
+    extra = {
+        key: transcription[key]
+        for key in ("languages", "keywords", "delay")
+        if key in transcription
+    }
+    if not extra:
+        return original
+    for key in ("languages", "keywords"):
+        value = extra.get(key)
+        if value is not None and (
+            not isinstance(value, list) or any(not isinstance(item, str) for item in value)
+        ):
+            raise ValueError("invalid acknowledged transcription metadata")
+    delay = extra.get("delay")
+    if delay is not None and (
+        not isinstance(delay, str) or delay not in {"minimal", "low", "medium", "high", "xhigh"}
+    ):
+        raise ValueError("invalid acknowledged transcription delay")
+    adapted = copy.deepcopy(event)
+    adapted_transcription = adapted["session"]["audio"]["input"]["transcription"]
+    for key in extra:
+        del adapted_transcription[key]
+    return json.dumps(adapted)
+
+
 class SupervisorSocket:
     def __init__(self, socket, observe):
         self.socket, self.observe = socket, observe
@@ -113,7 +158,7 @@ class SupervisorSocket:
                 await self.observe(event)
                 continue
             await self.observe(event)
-            yield message
+            yield sdk_session_message(event, message)
 
     async def send(self, message):
         await self.socket.send(message)

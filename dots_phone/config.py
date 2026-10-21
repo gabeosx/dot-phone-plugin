@@ -32,6 +32,9 @@ class Settings(BaseModel):
     voice_backend: str = "tac"
     pipecat_engine: str = "live"
     pipecat_realtime_model: str = "gpt-realtime-2.1"
+    pipecat_transcription_model: Literal["gpt-transcribe", "gpt-realtime-whisper"] = (
+        "gpt-transcribe"
+    )
     pipecat_turn_detection: Literal["semantic_vad", "server_vad"] = "semantic_vad"
     pipecat_vad_eagerness: Literal["low", "medium", "high", "auto"] = "high"
     pipecat_vad_silence_ms: int = Field(default=1000, ge=200, le=3000)
@@ -265,6 +268,7 @@ class Settings(BaseModel):
             "VOICE_BACKEND": "voice_backend",
             "PIPECAT_ENGINE": "pipecat_engine",
             "PIPECAT_REALTIME_MODEL": "pipecat_realtime_model",
+            "PIPECAT_TRANSCRIPTION_MODEL": "pipecat_transcription_model",
             "PIPECAT_TURN_DETECTION": "pipecat_turn_detection",
             "PIPECAT_VAD_EAGERNESS": "pipecat_vad_eagerness",
             "PIPECAT_VAD_SILENCE_MS": "pipecat_vad_silence_ms",

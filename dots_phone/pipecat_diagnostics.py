@@ -100,6 +100,22 @@ def accepted_input_configuration(session):
             if isinstance(reduction, dict)
             else "unknown"
         )
+    transcription_key = (
+        "transcription" if "transcription" in inputs else "input_audio_transcription"
+    )
+    if transcription_key in inputs:
+        transcription = inputs[transcription_key]
+        if transcription is None:
+            result["transcription"] = None
+        elif isinstance(transcription, dict):
+            if "model" in transcription:
+                result["transcription"] = {
+                    "model": _enum(
+                        transcription["model"], {"gpt-transcribe", "gpt-realtime-whisper"}
+                    )
+                }
+        else:
+            result["transcription"] = "unknown"
     return result
 
 

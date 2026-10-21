@@ -47,7 +47,15 @@ def realtime_session_properties(settings, *, general):
         reasoning=events.Reasoning(effort=settings.local_reasoner_voice_effort),
         audio=events.AudioConfiguration(
             input=events.AudioInput(
-                transcription=events.InputAudioTranscription(language="en"),
+                # Current committed-turn transcription uses optional `languages`,
+                # absent from the pinned SDK. Omit the hint instead of sending
+                # its unsupported legacy `language` field to the new model.
+                transcription=events.InputAudioTranscription(
+                    model=settings.pipecat_transcription_model,
+                    language="en"
+                    if settings.pipecat_transcription_model == "gpt-realtime-whisper"
+                    else None,
+                ),
                 noise_reduction=input_noise_reduction(settings),
                 turn_detection=general_turn_detection(settings)
                 if general

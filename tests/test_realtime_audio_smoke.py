@@ -11,6 +11,162 @@ from dots_phone.realtime_audio_smoke import (
 )
 
 
+async def test_native_smoke_waits_for_production_post_call_review_before_result(
+    service, brief, tmp_path
+):
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, Mock
+
+    from dots_phone.realtime_audio_smoke import SmokePostCallReviews, finish_post_call_review
+    from tests.test_post_call_review import active, entries, finish, report, supported
+
+    cid = await active(service, brief, tmp_path)
+    codex = SimpleNamespace(review_closed=AsyncMock(side_effect=lambda context: supported(context)))
+    service.post_call_reviews = SmokePostCallReviews(service, codex)
+    trace = SimpleNamespace(mark=Mock())
+    await finish(service, cid, report(), entries())
+    assert service.result("owner", cid)["report_review_status"] == "pending"
+    with pytest.raises(RuntimeError, match="requires_voice_closure"):
+        await finish_post_call_review(service, cid, trace)
+    codex.review_closed.assert_not_awaited()
+    service.confirm_voice_closed(cid, 1000)
+    await finish_post_call_review(service, cid, trace)
+    result = service.result("owner", cid)
+    assert result["report_review_status"] == "reviewed" and result["outcome"] == "completed"
+    assert len(service.provider.dials) == len(service.provider.stops) == 1
+    codex.review_closed.assert_awaited_once()
+
+
+def test_failed_audio_trial_without_finish_report_preserves_incomplete_result():
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    from dots_phone.realtime_audio_smoke import observed_task_result
+
+    service = SimpleNamespace(reported_result=Mock(side_effect=TypeError("no report")))
+    assert observed_task_result(service, {"result": None}, "balance", []) == (None, False)
+    service.reported_result.assert_not_called()
+
+
+async def test_codex_audio_eval_closed_review_uses_frozen_schema_and_rejects_tools():
+    from unittest.mock import AsyncMock
+
+    from dots_phone.text_eval_agents import CodexCallEvalWorker
+
+    worker = CodexCallEvalWorker(None)
+    worker.request = AsyncMock(return_value={"output": {"verdicts": []}, "tool_calls": []})
+    context = {"brief": {"actions": [], "source_tools": []}, "proposed_report": {}}
+    assert await worker.review_closed(context) == {"verdicts": []}
+    assert worker.request.call_args.kwargs["operation"] == "review_closed_call"
+    assert worker.request.call_args.kwargs["context"] is context
+    worker.request.return_value["tool_calls"] = [{"tool": "mail.read"}]
+    with pytest.raises(RuntimeError, match="cannot use tools"):
+        await worker.review_closed(context)
+
+
+async def test_smoke_wires_playback_clear_required_by_production_keypad_controls(
+    service, brief, tmp_path
+):
+    from dots_phone.realtime_audio_smoke import Trace, audio_provider, build_voice
+    from tests.test_call_reasoner import prepare
+
+    prepared = prepare(service, brief, tmp_path)
+    call = service.call("owner", prepared["call_id"])
+    trace = Trace(tmp_path)
+    service.provider = audio_provider(service.settings, service, trace)
+    llm, _, _, output = build_voice(service, call, "offline-fixture", trace)
+    assert llm.interruption_barrier is not None
+    trace.agent_audio.extend(b"\1\0" * 100)
+    await llm.clear_playback("keypad_control")
+    assert not trace.agent_audio
+    assert trace.events[-1]["discarded_bytes"] == 200
+    assert trace.events[-1]["reason"] == "keypad_control"
+    llm.unbind_output_transport()
+
+
+@pytest.mark.parametrize("scenario", ["missing_information", "wrong_number"])
+def test_unavailable_and_wrong_number_rubrics_never_accept_false_success(scenario):
+    from dots_phone.realtime_audio_smoke import scenario_result_verified
+
+    assert not scenario_result_verified(scenario, {"outcome": "completed"}, ["I don't have it."])
+    assert not scenario_result_verified(
+        scenario,
+        {"outcome": "unresolved"},
+        ["My member number is zero zero four two zero four two zero."],
+    )
+    assert scenario_result_verified(
+        scenario, {"outcome": "unresolved"}, ["I don't have that information."]
+    )
+
+
+def test_missing_information_cannot_smuggle_confirmed_balance_into_incomplete_result():
+    from dots_phone.realtime_audio_smoke import scenario_result_verified
+
+    assert not scenario_result_verified(
+        "missing_information",
+        {"outcome": "unresolved", "confirmed_facts": [{"text": "Balance is 12,340 points."}]},
+        ["I don't have the member number."],
+    )
+
+
+def test_quality_scenarios_require_actual_correction_and_silence_not_false_balance():
+    from dots_phone.realtime_audio_smoke import fixture_lines, scenario_result_verified
+
+    assert "Remain silent" in fixture_lines("hold")[3]
+    assert "Please read that amount back before I confirm" in fixture_lines("interruption")[3]
+    assert "previous amount was wrong" in fixture_lines("interruption")[4]
+    wrong = {
+        "outcome": "completed",
+        "confirmed_facts": [
+            {
+                "text": "Available balance is 12,300 points.",
+                "quote": "Available balance is 12,300 points.",
+            }
+        ],
+    }
+    assert not scenario_result_verified("interruption", wrong, [])
+    with pytest.raises(ValueError, match="require the balance"):
+        fixture_lines("hold", allow_balance_clarification=True)
+
+
+def test_balance_replay_fixture_explicitly_offers_one_repeat_without_changing_original():
+    from dots_phone.realtime_audio_smoke import CLARIFICATION_LINE, LINES, fixture_lines
+
+    original = list(LINES)
+    offered = fixture_lines("balance", allow_balance_clarification=True)
+    assert offered[:3] == original[:3]
+    assert "You may ask me to repeat" in offered[3]
+    assert "That completes this inquiry." not in offered[3]
+    assert offered[4] == CLARIFICATION_LINE
+    assert fixture_lines("balance") == original == LINES
+
+
+def test_explicit_numeric_correction_is_not_confused_with_a_negated_balance():
+    from dots_phone.realtime_audio_smoke import scenario_result_verified
+
+    text = "Stop, correction, your current available balance is twelve thousand three hundred forty points. The previous amount was wrong. That completes this inquiry."
+    result = {"outcome": "completed", "confirmed_facts": [{"text": text, "quote": text}]}
+    assert scenario_result_verified("interruption", result, [])
+    assert "previous amount was wrong" in result["confirmed_facts"][0]["quote"]
+    result["confirmed_facts"][0]["quote"] += " Your current available balance is 12,300 points."
+    assert not scenario_result_verified("interruption", result, [])
+
+
+async def test_native_audio_phone_fixture_uses_real_8khz_mulaw_conversion():
+    import math
+    from array import array
+
+    from dots_phone.realtime_audio_smoke import telephone_codec_clips
+
+    source = array(
+        "h", (int(1000 * math.sin(2 * math.pi * 440 * i / 24000)) for i in range(24000))
+    ).tobytes()
+    [converted] = await telephone_codec_clips([source])
+    assert converted != source
+    assert abs(len(converted) - len(source)) < 320
+    assert max(abs(value) for value in array("h", converted)) > 900
+
+
 @pytest.mark.parametrize(
     "text",
     [
@@ -20,6 +176,9 @@ from dots_phone.realtime_audio_smoke import (
         "Was that twelve thousand three hundred forty points?",
         "Did you say 12,340 points or 12,300 points?",
         "Could you clarify the amount?",
+        "Could you restate the current available balance and unit?",
+        "What is the current available points balance?",
+        "How many points are currently available?",
     ],
 )
 def test_balance_clarification_fixture_only_answers_actual_balance_requests(text):
@@ -103,6 +262,7 @@ def test_normal_fixture_transcription_is_never_overridden(tmp_path):
 def test_prepare_records_opt_in_modes_without_relaxing_bounds(tmp_path):
     import json
     import wave
+    from array import array
 
     from dots_phone.realtime_audio_smoke import prepare
 
@@ -111,7 +271,7 @@ def test_prepare_records_opt_in_modes_without_relaxing_bounds(tmp_path):
             stream.setnchannels(1)
             stream.setsampwidth(2)
             stream.setframerate(24000)
-            stream.writeframes(b"\0" * 960)
+            stream.writeframes(array("h", [1000, -1000] * 3000).tobytes())
     assert len(prepare(tmp_path)) == 4
     assert (
         len(
@@ -135,6 +295,22 @@ def test_prepare_records_opt_in_modes_without_relaxing_bounds(tmp_path):
     with pytest.raises(FileExistsError, match="existing audio attempt"):
         prepare(tmp_path)
     assert (tmp_path / "scope.json").read_bytes() == original_scope
+
+
+@pytest.mark.parametrize("frames", [b"", b"\0" * 12000])
+def test_prepare_rejects_empty_or_silent_synthesizer_output_before_any_api(frames, tmp_path):
+    import wave
+
+    from dots_phone.realtime_audio_smoke import prepare
+
+    with wave.open(str(tmp_path / "ivr-0.wav"), "wb") as stream:
+        stream.setnchannels(1)
+        stream.setsampwidth(2)
+        stream.setframerate(24000)
+        stream.writeframes(frames)
+    with pytest.raises(ValueError, match="non-silent"):
+        prepare(tmp_path)
+    assert not (tmp_path / "attempt.json").exists()
 
 
 @pytest.mark.parametrize("value", ["12,340", "12340", "twelve thousand three hundred forty"])

@@ -27,7 +27,7 @@ Dots makes customer-service calls for errands like delivery updates. It prepares
 **Primary URL**
 
 ```text
-https://dots-phone.gabeaa.chatgpt.site
+https://phone.gabea.nyc
 ```
 
 Check that the deployed site serves the final version before using this URL. Use

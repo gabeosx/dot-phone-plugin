@@ -24,7 +24,7 @@ leading zeros. No people are called and no connected mailbox is accessed.
 Model sessions rejected before audio, empty generated fixtures, and harness
 adapter failures are retained as test failures rather than counted as completed
 behavioral checks. Results and generated audio remain outside release archives.
-These checks have not yet exercised a live carrier connection.
+These acoustic checks isolate voice and reasoning from carrier transport.
 
 The hold and telephone regressions verify the provider-acknowledged transcription
 model and pass without the optional local audio-review models. Local recognition

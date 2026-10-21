@@ -26,7 +26,7 @@ relinking requirements when redistributing binaries or modified versions.
 
 Examples in the locked environments include `num2words` 0.5.14 and `soxr` 1.0.0
 (LGPL), the `libsndfile` library used by `soundfile` 0.13.1 (LGPL), and `certifi`
-2026.7.22 (MPL-2.0). The separate experimental environment also uses `orjson`
+2026.10.19 (MPL-2.0). The separate experimental environment also uses `orjson`
 3.13.0 (MPL-2.0 and Apache-2.0 or MIT) and PyAV 16.1.0, whose bundled FFmpeg
 libraries need their own redistribution review.
 
@@ -51,3 +51,13 @@ Explicitly installed, checksum-verified model weights live in an external cache
 with provenance and notices, and are mounted read-only. The ordinary image does
 not include the native library or model weights. The Python `deepfilter` extra
 contains only NumPy and soxr for the adapter's streaming resampling.
+
+Optional local post-call audio review uses separately downloaded
+[Systran small.en](https://huggingface.co/Systran/faster-whisper-small.en) and
+[medium.en](https://huggingface.co/Systran/faster-whisper-medium.en) conversions
+of OpenAI Whisper. Both model cards specify MIT; the underlying
+[Whisper license](https://github.com/openai/whisper/blob/main/LICENSE) retains
+OpenAI's copyright. The asset setup command pins each revision and checksum,
+keeps attribution and the license in the external model cache, and mounts the
+files read-only. These weights are not included in the source, Python packages
+or application images.

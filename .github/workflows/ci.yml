@@ -14,8 +14,8 @@ jobs:
       - run: uv run --no-sync python scripts/secret_scan.py --history
       - run: uv run --no-sync python scripts/public_release_audit.py --history --report artifacts/public-source-audit.json
       - run: node --test experiments/pipecat/tests/*.test.mjs experiments/pipecat/test_automatic_call_worker.mjs
-      - run: uv run pip-audit --disable-pip --require-hashes -r <(uv export --frozen --no-dev --extra pipecat --extra deepfilter --extra audio-review --no-emit-project --format requirements-txt)
-        shell: bash
+      - run: uv export --frozen --no-dev --all-extras --no-emit-project --format requirements-txt --output-file artifacts/dependency-requirements.txt
+      - run: uv run --no-sync python scripts/dependency_audit.py --requirements artifacts/dependency-requirements.txt --report artifacts/dependency-audit.json
       - run: docker run --rm --network none --user "$(id -u):$(id -g)" -v "$PWD:/repo:ro" -v "$PWD/artifacts:/report" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git /repo --redact --report-format json --report-path /report/gitleaks.json --no-banner
       - run: uv build
       - run: docker compose --profile test run --build --rm --user "$(id -u):$(id -g)" test-runner

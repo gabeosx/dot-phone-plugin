@@ -40,6 +40,7 @@ PUBLIC_FILES = {
     ".gitignore",
     "Dockerfile",
     "README.md",
+    "CONTRIBUTING.md",
     "LICENSE",
     "NOTICE",
     "MILESTONES.md",

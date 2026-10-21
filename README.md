@@ -15,7 +15,15 @@ asks for a delivery reference that wasn’t included, Codex can find it in a con
 Gmail account during the call. Dots then reports what the retailer confirmed.
 
 The demo uses fictional details. This is an **experimental preview** you run on your
-own computer, with your own accounts and credentials.
+own computer, with your own accounts and credentials. It is for technical early
+adopters who can run Docker, configure tunnels and register a private plugin.
+There is no hosted account or one-click install. Current calling support is
+US/Canada numbers in `+1` format, with one active call per instance by default.
+
+You can [run the offline checks](#working-on-the-project) before adding credentials.
+For a connected installation, first confirm that your ChatGPT account can register
+a custom MCP connection and that you can create a Secure MCP Tunnel. Those are
+prerequisites for the default installation path.
 
 ## Set up with Codex
 
@@ -101,5 +109,6 @@ uv run python -m dots_phone.checks offline
 These checks use fixtures and mocks; they do not call anyone.
 
 [Local setup](docs/LOCAL-SETUP.md) · [Operations](docs/RUNBOOK.md) · [Privacy](docs/PRIVACY.md)
+· [Troubleshooting and support](docs/SUPPORT.md) · [Upgrade](docs/LOCAL-SETUP.md#upgrade-an-existing-installation)
 
 [MIT licensed](LICENSE). [Third-party licenses and notices](docs/DEPENDENCY-LICENSES.md) are retained.

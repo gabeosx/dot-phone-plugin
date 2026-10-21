@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup and troubleshooting
+    url: https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/SUPPORT.md
+    about: Check the self-hosted preview's setup, readiness and upgrade guidance.
+  - name: Report a security vulnerability privately
+    url: https://github.com/gabeosx/dot-phone-plugin/security/advisories/new
+    about: Keep vulnerabilities and sensitive evidence out of public issues.

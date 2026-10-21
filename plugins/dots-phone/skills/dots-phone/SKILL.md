@@ -2,7 +2,7 @@
 name: dots-phone
 description: Handle a phone task from a plain request, such as getting an account balance, booking an appointment, or following up with support; also steer or end an existing call.
 metadata:
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 For spoken style and pending lookups, apply [Phone conversation](references/conversation.md).

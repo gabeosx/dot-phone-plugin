@@ -16,6 +16,11 @@ image is installed separately and its weights stay in an external read-only cach
 The bare runtime default remains off until those prerequisites exist. To opt out,
 set the private filter value to `off` and omit the filter overlay from commands.
 
+Optional local review can independently transcribe retained recipient audio after
+closure. It is off by default and does not guarantee accurate numbers or resolve
+every conflict with the live transcript. See [optional audio review](#optional-local-audio-review)
+before enabling it; input filtering and post-call recognition are separate choices.
+
 ## Local credentials and audio service
 
 Install Docker Compose, uv, Node.js LTS and the Codex CLI. Sign Codex in with
@@ -89,6 +94,14 @@ not silently lower it. Codex uses `DOTS_PHONE_LOCAL_REASONER_EFFORT` separately.
 Keep effort fixed when comparing the policies.
 Existing saved calls without a policy retain always-consult behavior.
 
+Committed-turn transcription uses
+`DOTS_PHONE_PIPECAT_TRANSCRIPTION_MODEL=gpt-transcribe`. To compare or roll back,
+explicitly select `gpt-realtime-whisper` and recreate between calls; both choices
+apply to general and task voice sessions. This setting changes recognition of
+what the recipient said, independently of voice reasoning effort and optional
+closed-call local audio review. Model access and numeric accuracy require actual
+audio checks; a supported setting alone does not establish either.
+
 Dots fills the structured `prepare_call` inputs; the service renders and saves their
 canonical readable preparation document before start. Retrieve it with authenticated
 `get_call` when needed. Both models use the same bound evidence. Do not put a second,
@@ -105,7 +118,7 @@ Dots initiates ordinary calls and uses its own memory and authorized connectors
 to prepare known account details with provenance before dialing. The delegate
 receives that canonical preparation and task-appropriate connected read tools
 for unexpected questions; it does not inherit Dots' private memory implicitly.
-For an AA inquiry, verify whose account a number belongs to before including it;
+For an account inquiry, verify whose account a number belongs to before including it;
 a passenger or forwarded-message recipient is not necessarily the owner.
 An inherited source selection with no available read tools now blocks start
 before inference/dialing. An explicit `source_tools: []` still permits a deliberate
@@ -184,6 +197,55 @@ origins, configure placeholders at setup, start the gateways, obtain your tunnel
 origins, update config.env and recreate phone-app before connecting ChatGPT.
 Temporary tunnel origins must stay running and unchanged through OAuth/calls.
 
+## Optional local audio review
+
+This opt-in adds a local recipient-audio transcript to closed-call review. It needs
+retained recording data and uses CPU inference; it does not send recordings to an
+additional speech provider. It can disagree with the live transcript, and review
+can still leave the business result unresolved. Leave it off if that tradeoff is
+not useful. Preserve an explicit recording-retention opt-out.
+
+Prepare the pinned English `small.en` primary and `medium.en` confirmation weights
+outside the checkout. The commands download about 2 GB of public model files in
+total and verify their checksums. They do not process audio, load a recognizer or
+place a call. The default destination is
+your platform's Dots Phone application-data directory; `--output` selects another
+external directory. Save the returned absolute directory privately.
+
+```sh
+uv run --no-sync python -m dots_phone.audio_review_assets
+uv run --no-sync python -m dots_phone.audio_review_assets --model medium.en
+uv run --no-sync python -m dots_phone.audio_review_assets --verify
+uv run --no-sync python -m dots_phone.audio_review_assets --model medium.en --verify
+```
+
+Set `DOTS_PHONE_AUDIO_REVIEW_MODEL_DIRECTORY` and
+`DOTS_PHONE_AUDIO_REVIEW_CONFIRMATION_MODEL_DIRECTORY` in the same private config.env
+to the corresponding returned directories. Add `-f compose.audio-review.yaml` to
+**every** Compose startup, recreation and configuration-check command, after your
+other overlays. It mounts
+only those verified directories read-only and sets the container's model paths.
+The supplied phone image already includes the optional recognizer dependencies.
+Keep `DOTS_PHONE_RETAIN_RECORDING=true` if you elect to use this feature; the
+overlay never changes that choice. A per-call recording opt-out also prevents review.
+
+```sh
+docker compose --env-file .secrets/config.env -f compose.local.yaml -f compose.deepfilter.yaml -f compose.audio-review.yaml --profile connection config --quiet
+uv run --no-sync python -m dots_phone.setup check --env-file .secrets/config.env --compose-file compose.local.yaml --compose-file compose.deepfilter.yaml --compose-file compose.audio-review.yaml --running
+```
+
+Recreate only after active calls and final review have finished. Verification is
+offline and checks files, mounts and package presence; it does not measure speech
+recognition or final-report accuracy. Closed-call recognition uses local CPU time
+and may extend report preparation; it adds no speech API bill. Two recognizers
+can make the same mistake, and agreement alone is not proof of the business result.
+
+To disable local audio review, remove this overlay and clear both
+`DOTS_PHONE_POST_CALL_AUDIO_MODEL_DIRECTORY` and
+`DOTS_PHONE_POST_CALL_AUDIO_CONFIRMATION_MODEL_DIRECTORY` in the private
+configuration, then recreate between calls. Existing recordings follow the retention policy;
+disabling this recognizer does not delete them or change that policy.
+
 ## Connect ChatGPT to the local MCP server
 
 Create a private Secure MCP Tunnel in
@@ -250,6 +312,76 @@ returns the packaged instructions without starting a call. Successful health
 checks, offline tests and linked-tool access establish no-dial setup readiness.
 They do not establish paid model access, funded carrier routing or audio quality.
 Do not invoke `start_call`, paid evaluations or live test flags as part of this check.
+
+Run the read-only setup diagnostic with the same private environment and Compose
+files used to start the installation:
+
+```sh
+uv run --no-sync python -m dots_phone.setup check --env-file .secrets/config.env --compose-file compose.local.yaml --compose-file compose.deepfilter.yaml --running
+```
+
+For an explicitly unfiltered installation, omit the DeepFilter Compose file.
+Use your actual environment path for a custom private directory. The diagnostic
+renders Compose privately and checks tooling, local credential formats, configured
+origins/callbacks/tunnel, worker heartbeat and protocols, read-only verified model
+weights, application/gateway health and running package version. It emits no
+private values or paths and never changes configuration, dials, queries sources
+or runs a model. `--json` returns the same checklist in structured form.
+
+Exit `0` means the requested **local** checks passed; exit `1` means setup is
+incomplete and each failed item gives a next step. Remote registration, OAuth
+linking, provider funding, paid models and acoustic quality remain unverified.
+Omit `--running` before startup to check configuration alone. The default command
+`uv run --no-sync python -m dots_phone.setup check` uses `.secrets/config.env`,
+`compose.local.yaml` and the `connection` profile; `--profile` can select another
+profile. A frozen rendered Compose file can be passed directly with
+`--compose-file` and no environment file; `--running` also finds its existing
+project tunnel container. See [troubleshooting](SUPPORT.md) for recovery.
+
+## Upgrade an existing installation
+
+1. Retrieve the current call state and wait for confirmed closure before stopping
+   services or the worker. Set `DOTS_PHONE_DRY_RUN=true` in the installation's
+   existing private `config.env` for the upgrade.
+2. Record the current source revision (`git rev-parse HEAD`), plugin version and
+   configuration location. Stop the service with the same Compose files and
+   private `--env-file` used to start it. Stop the host worker separately.
+3. With the service stopped, make a private backup of the Docker `local-state`
+   volume and the complete private setup directory, including `runtime.json`,
+   `config.env` and the tunnel key. Back up the original encryption key with the
+   database. Keep backups outside Git and protect them as credentials and call
+   records. Stopping containers preserves the volume; removing Compose volumes
+   deletes the database.
+4. Inspect local changes before updating the checkout to the reviewed release
+   revision. Run `uv sync --frozen --extra pipecat --python 3.13` and the offline
+   checks. Review [release notes](RELEASE-NOTES.md) for configuration changes.
+   Preserve existing identity, keys, budgets, source choices and filter settings.
+   Do not rerun `setup init` on this installation.
+5. Rebuild and start using the existing private environment and matching overlay.
+   For a filtered installation:
+
+   ```sh
+   docker compose --env-file .secrets/config.env -f compose.local.yaml -f compose.deepfilter.yaml --profile connection up --build -d
+   ```
+
+   Omit the filter overlay only for an explicitly unfiltered installation. Restart
+   the host worker from the updated checkout using its original reasoner directory.
+6. Regenerate the personal plugin package into a **new** private directory using
+   the original app mapping, then update the installed plugin as described below.
+   Repeat gateway, application, heartbeat and authenticated workflow checks with
+   dry-run enabled. Restore the previous dialing choice only after those pass.
+
+To roll back, stop after calls have closed, restore the recorded source revision
+and rebuild its images with the existing private configuration. If an upgrade
+changed stored state, restore the matching database backup and its original key
+together before starting. Never run two application versions against one volume.
+Reinstall the matching private plugin snapshot and repeat the no-dial checks.
+Keep the failed upgrade's private evidence available for investigation.
+
+For a routine restart without an upgrade, run the existing Compose `up -d`
+command and restart the host worker with the same private directory. Keep public
+tunnel origins stable or update the configuration and OAuth registration first.
+Do not recreate containers during an active call.
 
 ## Keep the installed skill current
 

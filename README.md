@@ -4,9 +4,9 @@
 
 A phone assistant for the errands that still require a conversation.
 
-[![Dots checking a replacement washing machine delivery](website/assets/repo-preview.jpg)](https://dots-phone.gabeaa.chatgpt.site)
+[![Dots checking a replacement washing machine delivery](website/assets/repo-preview.jpg)](https://phone.gabea.nyc)
 
-**[Set up with Codex](#set-up-with-codex)** · [Watch the example](https://dots-phone.gabeaa.chatgpt.site) · [Test results](docs/VALIDATION.md)
+**[Set up with Codex](#set-up-with-codex)** · [Watch the example](https://phone.gabea.nyc) · [Test results](docs/VALIDATION.md)
 
 > “Find out when my replacement washing machine will arrive.”
 

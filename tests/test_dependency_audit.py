@@ -1,8 +1,11 @@
+import json
 from datetime import date
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
-from scripts.dependency_audit import evaluate
+from scripts.dependency_audit import evaluate, main
 
 
 def evidence(name="pillow", version="12.3.0", advisory="reviewed-id"):
@@ -76,3 +79,40 @@ def test_skipped_package_cannot_pass():
 def test_incomplete_dependency_or_advisory_cannot_pass(dependency):
     with pytest.raises(ValueError):
         evaluate({"dependencies": [dependency]}, [], date(2026, 10, 20))
+
+
+@pytest.mark.parametrize("service", ["pypi", "osv"])
+def test_cli_audits_selected_feed_and_retains_its_findings(monkeypatch, tmp_path, service):
+    report_path = tmp_path / "audit.json"
+    exceptions_path = tmp_path / "exceptions.json"
+    exceptions_path.write_text("[]")
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "dependency_audit.py",
+            "--requirements",
+            str(tmp_path / "requirements.txt"),
+            "--report",
+            str(report_path),
+            "--exceptions",
+            str(exceptions_path),
+            "--vulnerability-service",
+            service,
+        ],
+    )
+
+    def audit(command, **kwargs):
+        assert command[command.index("--vulnerability-service") + 1] == service
+        assert "--require-hashes" in command
+        assert "--ignore-vuln" not in command
+        Path(command[command.index("--output") + 1]).write_text(json.dumps(evidence()))
+        return SimpleNamespace(returncode=1)
+
+    monkeypatch.setattr("scripts.dependency_audit.subprocess.run", audit)
+    with pytest.raises(SystemExit) as exit:
+        main()
+    assert exit.value.code == 1
+    report = json.loads(report_path.read_text())
+    assert report["vulnerability_service"] == service
+    assert report["dependencies"] == evidence()["dependencies"]
+    assert not report["exception_review"]["passed"]

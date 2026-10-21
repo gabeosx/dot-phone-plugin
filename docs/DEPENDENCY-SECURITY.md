@@ -7,9 +7,23 @@ mean that the installed dependency has no known vulnerabilities.
 
 ## Certificate trust update
 
-The lockfile upgrades certifi from 2026.7.22 to 2026.10.19, resolving
+Both lockfiles upgrade certifi from 2026.7.22 to 2026.10.19, resolving
 [PYSEC-2026-4320 / GHSA-6q48-6c7w-9gw2](https://github.com/advisories/GHSA-6q48-6c7w-9gw2).
 Rebuild containers from the updated lockfile before release.
+
+## Experimental dependency reduction
+
+The experimental lockfile previously enabled Pipecat's `cli` extra, which pulled
+in `pipecat-ai-context-hub` and ChromaDB. The scripts use Pipecat's core evaluation,
+pipeline, transport and worker modules; they do not invoke that CLI or its
+context-hub database. Removing the unused extra removes ChromaDB and its dependency
+chain rather than suppressing its four reported advisories:
+[GHSA-36p7-vc44-83pf](https://github.com/advisories/GHSA-36p7-vc44-83pf),
+[GHSA-xph7-9rjv-w5fr](https://github.com/advisories/GHSA-xph7-9rjv-w5fr),
+[GHSA-2wm9-hf6c-p5cr](https://github.com/advisories/GHSA-2wm9-hf6c-p5cr) and
+[GHSA-f4j7-r4q5-qw2c](https://github.com/advisories/GHSA-f4j7-r4q5-qw2c).
+Pipecat remains pinned at 1.12.0. Offline protocol tests run with the reduced
+environment to check that the core evaluation harness still works.
 
 ## Temporary Pillow exception
 
@@ -36,6 +50,7 @@ and requires removal of the exception before that feature ships.
 | [GHSA-462x-pgg6-55fp](https://github.com/advisories/GHSA-462x-pgg6-55fp) | Decode a crafted tiled TIFF | No TIFF decoding |
 | [GHSA-c6hw-5grf-ff96](https://github.com/advisories/GHSA-c6hw-5grf-ff96) | Decode malformed compressed TIFF tiles/RGBA data | No TIFF decoding |
 | [GHSA-vx6w-vv9f-6gvg](https://github.com/advisories/GHSA-vx6w-vv9f-6gvg) | Render an EPS with Ghostscript at an increased scale | No EPS rendering or Ghostscript workflow |
+| [GHSA-8g5g-8vmr-9782 / CVE-2026-112403](https://github.com/python-pillow/Pillow/security/advisories/GHSA-8g5g-8vmr-9782) | Decode a crafted lossless JPEG after `draft()` or `thumbnail()` requests scaled output | No JPEG decoding, thumbnailing or draft operations |
 
 These are reachability conclusions from the application and pinned dependency
 source, not a claim that the vulnerable operations are safe:
@@ -53,7 +68,9 @@ source, not a claim that the vulnerable operations are safe:
 - The pinned Pipecat Realtime SDK imports Pillow for its general video feature.
   Its video helper uses `Image.frombytes(...).save(..., format="JPEG")`; the
   telephone serializer never produces the image frame that calls that helper.
-  None of the eight affected PDF/GIF/morphology/TIFF/EPS operations are called.
+  None of the nine affected PDF/GIF/morphology/TIFF/EPS/JPEG-decoding operations
+  are called. Creating a JPEG from raw pixels does not invoke the scaled JPEG
+  decoder described by CVE-2026-112403.
 
 `tests/test_voice_media_boundary.py` exercises the pinned serializer with image,
 video, document and file event types and file-like audio bytes, with Pillow
@@ -62,15 +79,34 @@ codec, MCP supervision and teardown integration tests cover the audio path.
 
 ## Audit enforcement
 
-CI exports the locked production extras with hashes, then runs:
+CI exports all locked production extras and all locked experimental extras with
+hashes, then audits each export against **both PyPI and OSV**:
 
 ```sh
 uv run --no-sync python scripts/dependency_audit.py \
   --requirements artifacts/dependency-requirements.txt \
   --report artifacts/dependency-audit.json
+uv run --no-sync python scripts/dependency_audit.py \
+  --vulnerability-service osv \
+  --requirements artifacts/dependency-requirements.txt \
+  --report artifacts/dependency-audit-osv.json
 ```
 
-`scripts/dependency_exceptions.json` lists only the eight reviewed advisory IDs
+The same two commands run against `artifacts/experimental-dependency-requirements.txt`,
+with separate `experimental-dependency-audit*.json` reports. With `--disable-pip`,
+both audits require pinned requirements with hashes but do not verify the hash
+values or download the package artifacts. The separate frozen `uv` installation
+checks artifact integrity against the lockfile. The two feeds provide advisory
+coverage; all four reports retain their findings and identify the feed used.
+
+On October 20, GitHub and OSV reported the newly published critical
+[GHSA-8g5g-8vmr-9782](https://github.com/advisories/GHSA-8g5g-8vmr-9782), while
+PyPI's feed still reported only the other eight Pillow findings. This difference
+is why a single passing PyPI review is insufficient. The ninth advisory's
+affected operation was reviewed directly against the primary advisory; it is
+included explicitly rather than treated as covered by an older audit.
+
+`scripts/dependency_exceptions.json` lists only the nine reviewed advisory IDs
 for exactly `pillow==12.3.0`. The evaluator rejects other packages, changed
 versions, new IDs, expired exceptions, skipped dependencies, missing reports
 and audit tool failures. Raw findings remain in the report alongside an explicit

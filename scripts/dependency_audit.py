@@ -64,6 +64,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--requirements", required=True, type=Path)
     parser.add_argument("--report", required=True, type=Path)
+    parser.add_argument("--vulnerability-service", choices=("pypi", "osv"), default="pypi")
     parser.add_argument(
         "--exceptions", type=Path, default=Path(__file__).with_name("dependency_exceptions.json")
     )
@@ -81,6 +82,8 @@ def main() -> None:
                     "pip_audit",
                     "--disable-pip",
                     "--require-hashes",
+                    "--vulnerability-service",
+                    args.vulnerability_service,
                     "--format",
                     "json",
                     "--output",
@@ -93,6 +96,7 @@ def main() -> None:
             if process.returncode not in {0, 1} or not raw.is_file():
                 raise ValueError("dependency audit did not complete")
             report = json.loads(raw.read_text())
+        report["vulnerability_service"] = args.vulnerability_service
         report["exception_review"] = evaluate(report, exceptions, datetime.now(UTC).date())
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(report, indent=2) + "\n")

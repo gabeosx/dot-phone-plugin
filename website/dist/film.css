@@ -31,3 +31,5 @@
 #call-film:fullscreen .film-take{color:#b4c2a6}
 #call-film:fullscreen .film-brand>span:last-child{color:#b4c2a6}
 @media(max-width:620px){#call-film:fullscreen .film-screen{width:min(100vw,calc((100vh - 115px)*.615));aspect-ratio:400/650;max-height:calc(100vh - 115px);height:auto;flex:0 0 auto}#call-film:fullscreen .film-player{width:min(100vw,calc((100vh - 115px)*.615))}}
+/* Keep small playback labels readable against the dark controls. */
+.film-time{color:#93a487}.film-chapters button>span{color:#93a487}

@@ -21,6 +21,12 @@ its responsive layout and visual styling; the page frame lives in `styles.css`.
 All people, businesses, messages, identifiers, and delivery details are fictional.
 Nothing in the film makes a call, opens an inbox, or sends data anywhere.
 
+The page also explains the self-hosted preview's account requirements, provider
+costs, data flow, known limits and support route. Native `details` elements keep
+the FAQ usable without JavaScript. `social-card.png` supplies the Open Graph and
+Twitter preview; `robots.txt` and `sitemap.xml` describe the public landing page.
+The editable social and Product Hunt image sources live in `assets/launch/`.
+
 The film has seven shots:
 
 | Seconds | Shot |

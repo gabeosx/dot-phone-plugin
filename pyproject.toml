@@ -1,6 +1,6 @@
 [project]
 name = "dots-phone"
-version = "0.3.1"
+version = "0.3.2"
 description = "Private supervised Dots phone plugin"
 license = "MIT AND Apache-2.0"
 license-files = ["LICENSE", "NOTICE", "vendor/voice_evals/LICENSE", "vendor/agent-plugins-LICENSE"]
@@ -44,8 +44,8 @@ packages = ["dots_phone"]
 [tool.hatch.build.targets.sdist]
 include = [
   "/dots_phone", "/plugins/dots-phone", "/tests", "/scripts", "/evals", "/vendor",
-  "/experiments/pipecat", "/docs", "/.agents/plugins/marketplace.json", "/.agents/skills/dots-phone-setup", "/.github/workflows/ci.yml",
-  "/pyproject.toml", "/uv.lock", "/README.md", "/LICENSE", "/NOTICE", "/MILESTONES.md", "/Dockerfile",
+  "/experiments/pipecat", "/docs", "/.agents/plugins/marketplace.json", "/.agents/skills/dots-phone-setup", "/.github",
+  "/pyproject.toml", "/uv.lock", "/README.md", "/CONTRIBUTING.md", "/LICENSE", "/NOTICE", "/MILESTONES.md", "/Dockerfile",
   "/compose*.yaml", "/.env.example", "/.dockerignore", "/.gitignore", "/.gitattributes",
 ]
 exclude = ["**/__pycache__/**", "**/.DS_Store", "**/.secrets/**", "**/artifacts/**", "**/*.onnx", "**/*.kef", "**/DeepFilterNet*_onnx.tar.gz", "**/*.wav", "**/*.pcmu", "**/*.pcm", "**/*.whl", "**/*.so", "**/*.dylib", "**/*.pt", "**/*.safetensors"]

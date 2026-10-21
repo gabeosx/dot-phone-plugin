@@ -106,6 +106,69 @@ def test_accepted_detector_values_are_explicit_bounded_and_content_free():
     }
 
 
+@pytest.mark.parametrize("model", ["gpt-transcribe", "gpt-realtime-whisper"])
+def test_accepted_transcription_model_is_explicit_and_drops_hints(model):
+    private = "fictional private transcription hint"
+    assert accepted_input_configuration(
+        {"audio": {"input": {"transcription": {"model": model, "prompt": private}}}}
+    ) == {"transcription": {"model": model}}
+    assert accepted_input_configuration({"transcription": {"prompt": private}}) == {}
+    assert accepted_input_configuration({"transcription": {"model": private}}) == {
+        "transcription": {"model": "unknown"}
+    }
+    assert accepted_input_configuration({"input_audio_transcription": None}) == {
+        "transcription": None
+    }
+
+
+async def test_provider_acknowledgement_records_accepted_model_instead_of_requested_default(
+    service, brief
+):
+    call_id = service.prepare("owner", brief)["call_id"]
+    voice = SupervisedRealtimeService(
+        supervisor=service, call_id=call_id, api_key="offline-fixture"
+    )
+    assert service.settings.pipecat_transcription_model == "gpt-transcribe"
+    await voice.observe(
+        {
+            "type": "session.updated",
+            "session": {
+                "id": "offline-accepted-model",
+                "model": "gpt-realtime-2.1",
+                "audio": {"input": {"transcription": {"model": "gpt-realtime-whisper"}}},
+            },
+        }
+    )
+    accepted = service.call("owner", call_id)["usage"]["accepted_voice_configuration"]
+    assert accepted["transcription"] == {"model": "gpt-realtime-whisper"}
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "fictional private model text",
+        ["gpt-transcribe"],
+        {"model": "gpt-transcribe"},
+        True,
+        42,
+    ],
+)
+def test_invalid_accepted_model_metadata_is_never_retained(value):
+    assert accepted_input_configuration(
+        {
+            "audio": {
+                "input": {
+                    "transcription": {
+                        "model": value,
+                        "languages": ["fictional private language text"],
+                        "keywords": ["fictional private keyword text"],
+                    }
+                }
+            }
+        }
+    ) == {"transcription": {"model": "unknown"}}
+
+
 def test_timeline_bounds_redacts_unknowns_and_separates_sessions():
     diagnostics = NativeInterruptionDiagnostics(1234000)
     private = "fictional private diagnostic words"

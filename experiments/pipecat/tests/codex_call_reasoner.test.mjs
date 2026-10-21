@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import {CodexCallAgent,callSourceTools,contextInput,privateRead,readOnlyTools,validateRequest,workerConfig} from '../codex_call_reasoner.mjs';
+import {CodexCallAgent,callSourceTools,contextInput,evalRequest,privateRead,readOnlyTools,validateRequest,workerConfig} from '../codex_call_reasoner.mjs';
 import {configValue} from '../subscription_app_server.mjs';
 
 const schemas={
@@ -14,6 +14,18 @@ const schemas={
   'dots_phone_legacy.get_call':{annotations:{readOnlyHint:true}},
 };
 const advice={status:'ready',next_step:'Press 2 for balances.',answer:'',supporting_quote:'',report_supported:false};
+test('evaluation closed review retires conversation before review and reviewer after completion',async()=>{
+  const events=[],scope={call_id:'a'.repeat(32),revision:1,brief_hash:'d'.repeat(64)};
+  const agent={retire:()=>events.push('retire'),advise:async request=>{
+    events.push(request.operation);assert.deepEqual(callSourceTools(request,['mail.read']),{allowed:[],selection:'none'});
+    return {advice:{verdicts:[]},tool_quote_verified:false,lifecycle:{thread_creations:2}};
+  }};
+  const result=await evalRequest(agent,{operation:'review_closed_call',call_scope:scope,
+    deadline_ms:Date.now()+50000,model:'gpt-6-sol',instructions:'Review fictional evidence only.',
+    input:{brief:{actions:[]}},schema:{type:'object'}});
+  assert.deepEqual(events,['retire','review_closed_call','retire']);
+  assert.deepEqual(result.output,{verdicts:[]});assert.deepEqual(result.tool_calls,[]);
+});
 function request() {
   return {schema:1,call_id:'a'.repeat(32),request_id:'b'.repeat(32),nonce:'c'.repeat(64),
     revision:1,brief_hash:'d'.repeat(64),created_ms:1000,expires_ms:2000,model:'gpt-6-sol',

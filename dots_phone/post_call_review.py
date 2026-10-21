@@ -18,7 +18,7 @@ from dots_phone.audio_evidence import (
 )
 from dots_phone.call_task import recipient_evidence
 from dots_phone.models import Conclusion, Evidence, ProposedReport, StrictModel
-from dots_phone.service import TERMINAL, Refused, digest
+from dots_phone.service import ACTIVE, TERMINAL, Refused, digest
 
 
 class ClaimVerdict(StrictModel):
@@ -222,8 +222,21 @@ class PostCallReviews:
             call["final_report_review"]["entries"] = copy.deepcopy(entries)
         self.service.save(call)
 
+    def outstanding(self):
+        """Include reports waiting for voice closure, before a task can start."""
+        return bool(self.tasks) or any(
+            call.get("final_report_review", {}).get("state") in {"pending", "running"}
+            for call in self.service.store.all("call")
+        )
+
     def dispatch(self):
-        for call in self.service.store.all("call"):
+        calls = self.service.store.all("call")
+        # Live calls and closed-call review share one signed-in worker. Also
+        # serialize persisted reviews after a restart or an earlier overlapping
+        # call; one review must not retire another call's reasoning session.
+        if self.tasks or any(call["state"] in ACTIVE - {"queued"} for call in calls):
+            return
+        for call in calls:
             review = call.get("final_report_review", {})
             if (
                 call["state"] in TERMINAL
@@ -234,10 +247,9 @@ class PostCallReviews:
                 task = asyncio.create_task(self.run(call["owner"], call["call_id"]))
                 self.tasks[call["call_id"]] = task
                 task.add_done_callback(lambda _, cid=call["call_id"]: self.tasks.pop(cid, None))
+                break
 
     async def run(self, owner, call_id):
-        from dots_phone.call_reasoner import CodexReasonerClient
-
         call = self.service.call(owner, call_id)
         review = call["final_report_review"]
         if (
@@ -285,7 +297,7 @@ class PostCallReviews:
             verdicts = {"verdicts": []}
             if context["proposed_report"]["evidence"]:
                 async with asyncio.timeout(60):
-                    verdicts = await CodexReasonerClient(self.service, call).review_closed(context)
+                    verdicts = await self.review_closed(call, context)
             conclusion = reviewed_conclusion(call, verdicts, entries, audio_observation)
             fresh = self.service.call(owner, call_id)
             if (
@@ -306,6 +318,11 @@ class PostCallReviews:
                 self.service.call(owner, call_id),
                 "Post-call review unavailable; proposed claims remain unverified.",
             )
+
+    async def review_closed(self, call, context):
+        from dots_phone.call_reasoner import CodexReasonerClient
+
+        return await CodexReasonerClient(self.service, call).review_closed(context)
 
     def fail(self, call, reason):
         review = call["final_report_review"]

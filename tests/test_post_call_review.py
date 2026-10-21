@@ -378,6 +378,100 @@ async def test_a_second_call_waits_before_dialing_while_closed_review_finishes(
     await service.end("owner", second)
 
 
+async def test_a_second_call_waits_for_delayed_voice_closure_before_prewarming(
+    service, brief, tmp_path, monkeypatch
+):
+    from dots_phone.call_reasoner import CodexReasonerClient
+
+    cid = await active(service, brief, tmp_path)
+    await finish(service, cid, report(), entries())
+    assert service.call("owner", cid)["final_report_review"]["state"] == "pending"
+    assert service.call("owner", cid)["usage"].get("voice_closed_confirmed") is not True
+
+    release = asyncio.Event()
+
+    async def slow(client, context):
+        await release.wait()
+        return supported(context)
+
+    monkeypatch.setattr(CodexReasonerClient, "review_closed", slow)
+    second = await active(service, brief, tmp_path)
+    assert service.call("owner", second)["state"] == "queued"
+    assert len(service.provider.dials) == 1
+    service.local_context_worker.before_dial.assert_not_awaited()
+    assert not service.post_call_reviews.tasks
+
+    service.confirm_voice_closed(cid, 1000)
+    await service.tick()
+    task = service.post_call_reviews.tasks[cid]
+    assert service.call("owner", second)["state"] == "queued"
+    service.local_context_worker.before_dial.assert_not_awaited()
+    release.set()
+    await task
+    await asyncio.sleep(0)
+    await service.tick()
+    assert service.call("owner", second)["state"] == "active"
+    service.local_context_worker.before_dial.assert_awaited_once()
+    assert len(service.provider.dials) == 2
+    await service.end("owner", second)
+
+
+async def test_old_pending_reviews_wait_for_an_existing_active_call(
+    service, brief, tmp_path, monkeypatch
+):
+    from dots_phone.call_reasoner import CodexReasonerClient
+
+    cid = await active(service, brief, tmp_path)
+    await finish(service, cid, report(), entries())
+    second = await active(service, brief, tmp_path)
+    # Reproduce state persisted by the old scheduler before it gated on pending
+    # reports: a new call became active before the old voice socket closed.
+    call = service.call("owner", second)
+    call.update(
+        state="active",
+        provider_sid="CA" + "2" * 32,
+        dial_started=service.call("owner", cid)["dial_started"],
+    )
+    service.save(call)
+    service.confirm_voice_closed(cid, 1000)
+    review = AsyncMock(side_effect=lambda context: supported(context))
+
+    async def review_closed(client, context):
+        return await review(context)
+
+    monkeypatch.setattr(CodexReasonerClient, "review_closed", review_closed)
+    await service.tick()
+    assert not service.post_call_reviews.tasks
+    review.assert_not_awaited()
+
+    await service.end("owner", second)
+    service.post_call_reviews.dispatch()
+    await service.post_call_reviews.tasks[cid]
+    review.assert_awaited_once()
+
+
+async def test_restart_before_voice_close_does_not_strand_the_next_call(service, brief, tmp_path):
+    from dots_phone.service import PhoneService
+    from tests.conftest import FakeProvider
+
+    cid = await active(service, brief, tmp_path)
+    await finish(service, cid, report(), entries())
+    assert service.call("owner", cid)["final_report_review"]["state"] == "pending"
+    restarted = PhoneService(service.settings, service.store, FakeProvider())
+    await restarted.recover()
+
+    old = restarted.call("owner", cid)
+    assert old["final_report_review"]["state"] == "unverified"
+    assert old["conclusion"]["outcome"] == "unresolved"
+    assert "restarted" in old["conclusion"]["unresolved_questions"][0]
+    assert old["usage"].get("voice_closed_confirmed") is not True
+    assert not restarted.post_call_reviews.tasks
+    second = await active(restarted, brief, tmp_path)
+    assert restarted.call("owner", second)["state"] == "active"
+    assert len(restarted.provider.dials) == 1
+    await restarted.end("owner", second)
+
+
 async def test_a_stale_review_cannot_overwrite_a_newer_scope_result(
     service, brief, tmp_path, monkeypatch
 ):

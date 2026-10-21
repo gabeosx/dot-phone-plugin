@@ -8,6 +8,13 @@ helps an LLM carry out this guide; it is available before the phone plugin is
 installed. In Codex you can invoke `$dots-phone-setup` from the checkout, or ask
 any capable coding assistant to read that file directly.
 
+This preview is for technical early adopters. The default installation needs
+private custom MCP/plugin registration and Secure MCP Tunnel access in your own
+account; check those are available before buying a number or configuring paid
+providers. It supports US/Canada `+1` destinations and one active call per instance
+by default. There is no hosted signup. You can run the [offline checks](#developer-checks)
+without provider credentials, Docker services, tunnels or a mailbox connection.
+
 ## Install these tools
 
 | Required tool | Version / setup | Official download or guide |
@@ -59,12 +66,21 @@ Run commands from the repository root unless noted otherwise.
 git clone https://github.com/gabeosx/dot-phone-plugin.git
 cd dot-phone-plugin
 uv sync --frozen --extra pipecat --python 3.13
+```
+
+If you already have a checkout, inspect and reuse it rather than overwriting it.
+To inspect the code and run the offline checks only, use
+`uv run --no-sync python -m dots_phone.checks offline` and stop here. Those checks
+need no account sign-in.
+
+For a connected installation, choose ChatGPT sign-in for Codex:
+
+```sh
 codex login
 codex login status
 ```
 
-If you already have a checkout, inspect and reuse it rather than overwriting it.
-Choose ChatGPT sign-in for Codex. The separate OpenAI API key is for Realtime.
+The separate OpenAI API key is for Realtime.
 
 ### 2. Create the private configuration
 
@@ -143,6 +159,10 @@ Check the application inside its container:
 docker compose --env-file .secrets/config.env -f compose.local.yaml -f compose.deepfilter.yaml exec -T phone-app python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/healthz').read().decode())"
 ```
 
+Verify that the host worker is still running and has a fresh heartbeat using
+[the setup diagnostic](LOCAL-SETUP.md#verify-setup-without-dialing). A healthy HTTP
+endpoint alone does not check the separate signed-in process.
+
 After linking, discover the phone tools and use `get_phone_workflow` to check the
 bundled workflow. It returns static instructions, not call records. Do not invoke
 `start_call` as a setup check. You can also run the offline acceptance tests:
@@ -161,6 +181,10 @@ After owner linking and enabling calls, a normal task request authorizes the
 bounded call; there is no new password page for each call. Dots prepares the brief
 and checks its scope before dialing. Normal calls do not require a per-number
 allowlist. See [operations](RUNBOOK.md) for steering, recovery and retention.
+
+Use [troubleshooting and support](SUPPORT.md) for common setup failures. For an
+existing install, follow [upgrade and rollback](LOCAL-SETUP.md#upgrade-an-existing-installation)
+instead of rerunning `init`.
 
 ## Developer checks
 

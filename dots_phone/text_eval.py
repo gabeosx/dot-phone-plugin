@@ -358,6 +358,7 @@ def build_runtime(
         settings=SimpleNamespace(
             pipecat_engine="realtime",
             pipecat_realtime_model=model,
+            pipecat_transcription_model="gpt-transcribe",
             pipecat_turn_detection="semantic_vad",
             pipecat_noise_reduction="off",
             pipecat_vad_eagerness="high",

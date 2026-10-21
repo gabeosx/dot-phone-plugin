@@ -1057,6 +1057,18 @@ class PhoneService:
                 # Recover persisted disconnection evidence from older runtimes;
                 # do not infer final usage or successful inquiry from closure.
                 self.confirm_voice_closed(call["call_id"], call["usage"].get("realtime_close_code"))
+                call = self.call(call["owner"], call["call_id"])
+                if call["usage"].get("voice_closed_confirmed") is not True and call.get(
+                    "final_report_review", {}
+                ).get("state") in {"pending", "running"}:
+                    # The dead process can no longer deliver its socket-close
+                    # callback. Do not leave the shared worker queue blocked or
+                    # replay a review whose voice evidence is incomplete.
+                    self.post_call_reviews.fail(
+                        call,
+                        "Service restarted before voice closure was confirmed; "
+                        "proposed claims remain unverified.",
+                    )
             if call["state"] in ACTIVE - {"queued"}:
                 if call["provider_sid"] and self.provider:
                     await self.end(call["owner"], call["call_id"], "server_restart")
@@ -1079,9 +1091,9 @@ class PhoneService:
         for call in self.store.all("call"):
             state = call["state"]
             if state == "queued":
-                if self.post_call_reviews.tasks:
+                if self.post_call_reviews.outstanding():
                     call["progress"] = (
-                        "Waiting for closed-call review before preparing the next call."
+                        "Waiting for the previous call to close and finish result review."
                     )
                     self.save(call)
                     continue

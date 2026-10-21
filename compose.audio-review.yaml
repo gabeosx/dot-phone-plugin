@@ -1,0 +1,18 @@
+# Optional local review of retained recipient audio. Download weights separately;
+# this overlay never enables recording or changes the input-filter selection.
+services:
+  phone-app:
+    environment:
+      DOTS_PHONE_POST_CALL_AUDIO_MODEL_DIRECTORY: /models/audio-review/small.en
+      DOTS_PHONE_POST_CALL_AUDIO_CONFIRMATION_MODEL_DIRECTORY: /models/audio-review/medium.en
+    volumes:
+      - type: bind
+        source: "${DOTS_PHONE_AUDIO_REVIEW_MODEL_DIRECTORY:?Run python -m dots_phone.audio_review_assets outside the checkout first}"
+        target: /models/audio-review/small.en
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: "${DOTS_PHONE_AUDIO_REVIEW_CONFIRMATION_MODEL_DIRECTORY:?Run python -m dots_phone.audio_review_assets --model medium.en outside the checkout first}"
+        target: /models/audio-review/medium.en
+        read_only: true
+        bind: {create_host_path: false}

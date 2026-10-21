@@ -228,3 +228,17 @@ class CodexCallEvalWorker(CodexEvalWorker):
         result = await super().parse(**{**params, "text_format": CompactDecision})
         result.output_parsed = result.output_parsed.advice()
         return result
+
+    async def review_closed(self, context):
+        from dots_phone.post_call_review import REVIEW_PROMPT, ClosedCallReview
+
+        result = await self.request(
+            operation="review_closed_call",
+            model="gpt-6-sol",
+            instructions=REVIEW_PROMPT,
+            context=context,
+            schema=to_strict_json_schema(ClosedCallReview),
+        )
+        if result.get("tool_calls") != []:
+            raise RuntimeError("closed-call evaluation review cannot use tools")
+        return ClosedCallReview.model_validate(result["output"]).model_dump()

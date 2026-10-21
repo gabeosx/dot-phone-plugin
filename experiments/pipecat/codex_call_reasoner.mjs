@@ -309,6 +309,25 @@ export class CodexCallAgent {
   }
 }
 
+export async function evalRequest(agent,value) {
+  if(!['prepare_call','reason','review_closed_call'].includes(value.operation)||!value.call_scope)
+    throw Error('invalid_eval_request');
+  const request={...value.call_scope,schema:1,operation:value.operation,
+    request_id:crypto.randomBytes(16).toString('hex'),nonce:crypto.randomBytes(32).toString('hex'),
+    created_ms:Date.now(),expires_ms:Math.min(value.deadline_ms,Date.now()+50000),model:value.model,
+    effort:value.effort??'medium',instructions:value.instructions,context:value.input,output_schema:value.schema};
+  validateRequest(request,request.call_id+'-'+request.request_id+'-reason.json');
+  if(request.context.brief.actions.includes('read_call_sources'))throw Error('eval_sources_not_permitted');
+  if(value.operation==='prepare_call')return agent.prepare(request);
+  if(value.operation==='review_closed_call')agent.retire(request.call_id,request.brief_hash);
+  try {
+    const answer=await agent.advise(request);
+    return {output:answer.advice,tool_calls:[],tool_quote_verified:answer.tool_quote_verified,lifecycle:answer.lifecycle};
+  } finally {
+    if(value.operation==='review_closed_call')agent.retire(request.call_id,request.brief_hash);
+  }
+}
+
 async function evalMain() {
   const session=new SubscriptionAppServer();
   const agent=new CodexCallAgent(session,process.cwd(),{connectedTools:false});
@@ -320,24 +339,11 @@ async function evalMain() {
     for await(const line of readline.createInterface({input:process.stdin})) {
       const value=JSON.parse(line);
       try {
-        if(!['prepare_call','reason'].includes(value.operation)||!value.call_scope)throw Error('invalid_eval_request');
+        if(!value.call_scope)throw Error('invalid_eval_request');
         const scope=JSON.stringify(value.call_scope);
         if(callScope&&callScope!==scope)throw Error('eval_call_scope_changed');
         callScope=scope;
-        const request={...value.call_scope,schema:1,request_id:crypto.randomBytes(16).toString('hex'),
-          nonce:crypto.randomBytes(32).toString('hex'),created_ms:Date.now(),
-          expires_ms:Math.min(value.deadline_ms,Date.now()+50000),model:value.model,
-          effort:value.effort??'medium',
-          instructions:value.instructions,context:value.input,output_schema:value.schema};
-        validateRequest(request,request.call_id+'-'+request.request_id+'-reason.json');
-        if(request.context.brief.actions.includes('read_call_sources'))throw Error('eval_sources_not_permitted');
-        let result;
-        if(value.operation==='prepare_call') {
-          result=await agent.prepare(request);
-        } else {
-          const answer=await agent.advise(request);
-          result={output:answer.advice,tool_calls:[],tool_quote_verified:answer.tool_quote_verified,lifecycle:answer.lifecycle};
-        }
+        const result=await evalRequest(agent,value);
         process.stdout.write(JSON.stringify({id:value.id,...result})+'\n');
       } catch(error) {process.stdout.write(JSON.stringify({id:value.id,error:error.message})+'\n');}
     }

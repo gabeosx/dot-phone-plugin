@@ -27,6 +27,7 @@ from dots_phone.call_reasoner import (
 )
 from dots_phone.config import Settings
 from dots_phone.models import Brief
+from dots_phone.post_call_review import PostCallReviews
 from dots_phone.service import PhoneService
 from dots_phone.store import Store
 from dots_phone.text_eval import fixture_call
@@ -47,6 +48,95 @@ MAX_SECONDS = 90
 MAX_RESPONSES = 10
 BUDGET_USD = 1.0
 HEADROOM_USD = 0.25
+SCENARIOS = ("balance", "missing_information", "wrong_number", "hold", "interruption")
+
+
+def fixture_lines(scenario="balance", *, allow_balance_clarification=False):
+    if scenario not in SCENARIOS:
+        raise ValueError("unknown audio scenario")
+    if scenario != "balance" and allow_balance_clarification:
+        raise ValueError("balance clarification flags require the balance scenario")
+    if scenario == "missing_information":
+        return [
+            LINES[0],
+            LINES[1],
+            "There is no alternative verification available. Without the member number, "
+            "I cannot provide your points balance. This inquiry is closed.",
+        ]
+    if scenario == "wrong_number":
+        return [
+            "You have reached the fictional Cedar Dental office. This is not a rewards "
+            "account service. Is your call about a dental appointment?",
+            "This is the wrong number for a rewards enquiry. Please end this call.",
+        ]
+    if scenario == "hold":
+        return [
+            *LINES[:3],
+            "This is an automated hold message. Remain silent while I retrieve your balance. "
+            "Do not speak until I return.",
+            LINES[3],
+        ]
+    if scenario == "interruption":
+        return [
+            *LINES[:3],
+            "Your current available balance is twelve thousand three hundred points. "
+            "Please read that amount back before I confirm it.",
+            "Stop. Correction: your current available balance is twelve thousand three hundred "
+            "forty points. The previous amount was wrong. That completes this inquiry.",
+        ]
+    if allow_balance_clarification:
+        offered = LINES[3].replace(
+            "That completes this inquiry.",
+            "You may ask me to repeat the current available balance once before ending.",
+        )
+        return [*LINES[:3], offered, CLARIFICATION_LINE]
+    return LINES
+
+
+def scenario_result_verified(scenario, conclusion, captions):
+    if scenario == "interruption":
+        from copy import deepcopy
+
+        corrected = deepcopy(conclusion)
+        for fact in corrected.get("confirmed_facts", []):
+            for field in ("text", "quote"):
+                if isinstance(fact.get(field), str):
+                    fact[field] = re.sub(
+                        r"\b(?:the )?previous amount was wrong\b[.!]?",
+                        "",
+                        fact[field],
+                        flags=re.I,
+                    )
+        return fixture_result_verified(corrected)
+    if scenario not in {"missing_information", "wrong_number"}:
+        return fixture_result_verified(conclusion)
+    from dots_phone.text_eval_simulator import identifier_supplied
+
+    if conclusion.get("outcome") not in {"unresolved", "declined"}:
+        return False
+    if identifier_supplied("00420420", " ".join(captions)):
+        return False
+    if scenario == "missing_information":
+        if conclusion.get("confirmed_facts"):
+            return False
+        return bool(
+            re.search(
+                r"\b(?:don't have|do not have|can't|cannot|unavailable|not available|"
+                r"not provided|not in|missing|another way|alternative)\b",
+                " ".join(captions),
+                re.I,
+            )
+        )
+    return not any(
+        identifier_supplied(value, " ".join(captions)) for value in ["02139", "Morgan Vale"]
+    )
+
+
+def observed_task_result(service, call, scenario, captions):
+    """A failed audio trial can close before any finish_call proposal exists."""
+    conclusion = service.reported_result(call) if call.get("result") is not None else None
+    verified = bool(conclusion and scenario_result_verified(scenario, conclusion, captions))
+    return conclusion, verified
 
 
 def balance_clarification_requested(text):
@@ -55,12 +145,13 @@ def balance_clarification_requested(text):
     subject = re.search(r"\b(?:balance|points|amount|total|figure)\b", text)
     request = re.search(
         r"\b(?:(?:can|could|would|will) you (?:please )?|please )"
-        r"(?:repeat|confirm|clarify|say|read|state|tell|check)\b",
+        r"(?:repeat|restate|confirm|clarify|say|read|state|tell|check)\b",
         text,
     )
     readback = re.search(r"\b(?:was that|did you say|is that|is the)\b", text)
     amount = re.search(r"\b(?:\d[\d,]*|twelve thousand)\b", text)
-    return bool(subject and (request or (readback and amount)))
+    open_question = re.search(r"\b(?:what (?:is|was)|what's|how many)\b", text)
+    return bool(subject and (request or open_question or (readback and amount)))
 
 
 def fixture_result_verified(conclusion):
@@ -217,13 +308,14 @@ def prepare(
     voice_effort="medium",
     allow_balance_clarification=False,
     inject_balance_transcript_mismatch=False,
+    scenario="balance",
 ):
     if inject_balance_transcript_mismatch and not allow_balance_clarification:
         raise ValueError("transcription fault requires the explicit clarification fixture")
     if (directory / "attempt.json").exists():
         raise FileExistsError("refusing to change fixtures for an existing audio attempt")
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
-    lines = [*LINES, CLARIFICATION_LINE] if allow_balance_clarification else LINES
+    lines = fixture_lines(scenario, allow_balance_clarification=allow_balance_clarification)
     clips = []
     for index, line in enumerate(lines):
         path = directory / f"ivr-{index}.wav"
@@ -241,15 +333,19 @@ def prepare(
             ):
                 raise ValueError("fixture must be mono 24 kHz PCM")
             pcm = stream.readframes(stream.getnframes())
+        if len(pcm) < 9600 or not any(abs(value) > 100 for value in array("h", pcm)):
+            raise ValueError("fixture must contain at least 200 ms of non-silent speech audio")
         clips.append(pcm)
         path.chmod(0o600)
     scope = {
         "model": "gpt-realtime-2.1",
+        "scenario": scenario,
         "reasoner_model": "gpt-6-sol",
         "response_policy": response_policy,
         "voice_effort": voice_effort,
         "allow_balance_clarification": allow_balance_clarification,
         "max_recipient_clarifications": 1 if allow_balance_clarification else 0,
+        "recipient_replay_explicitly_offered": allow_balance_clarification,
         "inject_balance_transcript_mismatch": inject_balance_transcript_mismatch,
         "transcript_fault_scope": (
             "Actual provider item IDs bind supervisor-only transcript replacement: "
@@ -279,7 +375,7 @@ def prepare(
 
 
 class Trace:
-    def __init__(self, directory, *, inject_balance_transcript_mismatch=False):
+    def __init__(self, directory, *, inject_balance_transcript_mismatch=False, scenario="balance"):
         self.directory = directory
         self.origin = time.monotonic()
         self.events = []
@@ -298,6 +394,8 @@ class Trace:
         self.inject_balance_transcript_mismatch = inject_balance_transcript_mismatch
         self.transcription_fault_items = {}
         self.balance_clarifications_played = 0
+        self.scenario = scenario
+        self.played_voiced_samples = 0
 
     def observed_input_transcription(self, event):
         """Retain raw input, optionally fault only the supervisor's observation."""
@@ -351,7 +449,7 @@ class Trace:
 
 
 def build_voice(service, call, key, trace):
-    from pipecat.frames.frames import OutputAudioRawFrame
+    from pipecat.frames.frames import InterruptionFrame, OutputAudioRawFrame
     from pipecat.processors.frame_processor import FrameProcessor
 
     from dots_phone.pipecat_realtime import SupervisedRealtimeService
@@ -390,7 +488,9 @@ def build_voice(service, call, key, trace):
                 if response["status"] == "completed" and response.get("usage"):
                     trace.completed_response_usage[response["id"]] = response["usage"]
                 if not response.get("usage") or (
-                    response["status"] != "completed" and not repeated_completed_cancellation
+                    response["status"] != "completed"
+                    and not repeated_completed_cancellation
+                    and not (trace.scenario == "interruption" and response["status"] == "cancelled")
                 ):
                     trace.failure = "response_incomplete_or_usage_unconfirmed"
                     trace.abort.set()
@@ -433,7 +533,11 @@ def build_voice(service, call, key, trace):
             if self.closing or self.stop_requested:
                 return
             trace.failure = "voice_failure:" + phase
-            trace.mark("voice_failure", phase=phase)
+            trace.mark(
+                "voice_failure",
+                phase=phase,
+                exception_type=type(error).__name__ if error is not None else None,
+            )
             trace.abort.set()
 
     llm, context, prompt = create_task_voice(service, call, llm_class=ObservedRealtime, api_key=key)
@@ -456,6 +560,8 @@ def build_voice(service, call, key, trace):
     class PlayedOutput(FrameProcessor):
         async def process_frame(self, frame, direction):
             await super().process_frame(frame, direction)
+            if isinstance(frame, InterruptionFrame):
+                await clear_playback("native_interruption")
             if isinstance(frame, OutputAudioRawFrame):
                 if llm.reasoner_consulted_turn != llm.reasoner_turn:
                     trace.forwarded_before_reasoning += len(frame.audio)
@@ -464,7 +570,15 @@ def build_voice(service, call, key, trace):
                 trace.agent_audio.extend(frame.audio)
             await self.push_frame(frame, direction)
 
-    return llm, context, prompt, PlayedOutput()
+    async def clear_playback(reason):
+        queued_bytes = len(trace.agent_audio)
+        trace.agent_audio.clear()
+        trace.mark("playback_cleared", reason=reason, discarded_bytes=queued_bytes)
+
+    output = PlayedOutput()
+    llm.clear_playback = clear_playback
+    llm.bind_output_transport(output)
+    return llm, context, prompt, output
 
 
 def audio_provider(settings, service, trace):
@@ -502,6 +616,52 @@ def audio_provider(settings, service, trace):
     return NoDialProvider()
 
 
+class SmokePostCallReviews(PostCallReviews):
+    """Keep the production closed-call queue while isolating the reviewer transport."""
+
+    def __init__(self, service, codex):
+        super().__init__(service)
+        self.codex = codex
+
+    async def review_closed(self, call, context):
+        return await self.codex.review_closed(context)
+
+
+async def finish_post_call_review(service, call_id, trace):
+    call = service.call("owner", call_id)
+    review = call.get("final_report_review", {})
+    if review.get("state") not in {"pending", "running"}:
+        return
+    if call["usage"].get("voice_closed_confirmed") is not True:
+        raise RuntimeError("post_call_review_requires_voice_closure")
+    service.post_call_reviews.dispatch()
+    task = service.post_call_reviews.tasks.get(call_id)
+    if task is None:
+        raise RuntimeError("post_call_review_not_dispatched")
+    await asyncio.wait_for(asyncio.shield(task), 65)
+    final = service.call("owner", call_id)
+    trace.mark("post_call_review_finished", state=final["final_report_review"]["state"])
+
+
+async def telephone_codec_clips(clips):
+    """Exercise the production 8 kHz mu-law codec/resampler before native model input."""
+    import audioop
+
+    from pipecat.audio.utils import create_stream_resampler, pcm_to_ulaw, ulaw_to_pcm
+
+    converted = []
+    for pcm in clips:
+        down, up = create_stream_resampler(), create_stream_resampler()
+        encoded = await pcm_to_ulaw(pcm, 24000, 8000, down)
+        encoded += audioop.lin2ulaw(await down.flush(), 2)
+        decoded = await ulaw_to_pcm(encoded, 8000, 24000, up)
+        decoded += await up.flush()
+        if not decoded or len(decoded) < 9600:
+            raise ValueError("telephone codec produced insufficient audio")
+        converted.append(decoded)
+    return converted
+
+
 async def run(
     directory,
     runtime_path,
@@ -510,6 +670,8 @@ async def run(
     voice_effort="medium",
     allow_balance_clarification=False,
     inject_balance_transcript_mismatch=False,
+    scenario="balance",
+    telephone_codec=False,
 ):
     from pipecat.frames.frames import BotStoppedSpeakingFrame, EndFrame, InputAudioRawFrame
     from pipecat.pipeline.pipeline import Pipeline
@@ -523,13 +685,29 @@ async def run(
         voice_effort=voice_effort,
         allow_balance_clarification=allow_balance_clarification,
         inject_balance_transcript_mismatch=inject_balance_transcript_mismatch,
+        scenario=scenario,
     )
-    lines = [*LINES, CLARIFICATION_LINE] if allow_balance_clarification else LINES
+    lines = fixture_lines(scenario, allow_balance_clarification=allow_balance_clarification)
+    if telephone_codec:
+        clips = await telephone_codec_clips(clips)
+        for index, pcm in enumerate(clips):
+            with wave.open(str(directory / f"ivr-telephone-{index}.wav"), "wb") as stream:
+                stream.setnchannels(1)
+                stream.setsampwidth(2)
+                stream.setframerate(24000)
+                stream.writeframes(pcm)
+    scope = json.loads((directory / "scope.json").read_text())
+    scope["telephone_codec_roundtrip"] = telephone_codec
+    save(directory / "scope.json", scope)
     # Durable claim before any paid session; rerunning the same directory
     # refuses rather than silently starting a second experiment.
     with (directory / "attempt.json").open("x") as stream:
         json.dump({"started_at": time.time(), "budget_usd": BUDGET_USD}, stream)
-    trace = Trace(directory, inject_balance_transcript_mismatch=inject_balance_transcript_mismatch)
+    trace = Trace(
+        directory,
+        inject_balance_transcript_mismatch=inject_balance_transcript_mismatch,
+        scenario=scenario,
+    )
     settings = Settings(
         profile="evaluation",
         database=directory / "state.db",
@@ -549,6 +727,10 @@ async def run(
     provider = audio_provider(settings, service, trace)
     service.provider = provider
     data = fixture_call({})["brief"]
+    if scenario == "missing_information":
+        data["facts"] = [fact for fact in data["facts"] if fact["name"] != "member_number"]
+        data["disclosures"].remove("member_number")
+        data["unknowns"] = ["The member number is missing and no connected source is available."]
     data.update(max_seconds=MAX_SECONDS, budget_usd="1.00")
     data["actions"].remove("read_call_sources")
     call_id = service.prepare("owner", Brief.model_validate(data))["call_id"]
@@ -562,6 +744,7 @@ async def run(
     service.save(call)
     settings.dry_run = False  # Only the injected NoDialProvider can be reached.
     codex = await CodexCallEvalWorker.start(call, directory)
+    service.post_call_reviews = SmokePostCallReviews(service, codex)
     trace.mark("reasoner_prepared", **codex.lifecycle_trace[-1])
     service.local_context_worker = AutonomousAccountWorker(
         service, reasoner=CallReasoner(service, client=codex)
@@ -576,6 +759,12 @@ async def run(
         directory / "configuration.json",
         {
             "factory": "dots_phone.task_voice.create_task_voice",
+            "scenario": scenario,
+            "telephone_codec_roundtrip": telephone_codec,
+            "decision_seconds": settings.decision_seconds,
+            "input_transcription_model": (
+                llm._settings.session_properties.audio.input.transcription.model
+            ),
             "max_output_tokens_per_response": llm._settings.session_properties.max_output_tokens,
             "fixture_modes": {
                 "allow_balance_clarification": allow_balance_clarification,
@@ -586,10 +775,12 @@ async def run(
                 name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
                 for name in (
                     "dots_phone/task_voice.py",
+                    "dots_phone/config.py",
                     "dots_phone/pipecat_realtime.py",
                     "dots_phone/call_reasoner.py",
                     "dots_phone/call_task.py",
                     "dots_phone/report_review.py",
+                    "dots_phone/post_call_review.py",
                     "dots_phone/prepared_evidence.py",
                     "dots_phone/service.py",
                     "dots_phone/realtime_audio_smoke.py",
@@ -631,6 +822,7 @@ async def run(
             del trace.agent_audio[: len(played)]
             played = played.ljust(960, b"\0")
             if any(abs(x) > 200 for x in array("h", played)):
+                trace.played_voiced_samples += len(played) // 2
                 if not trace.playing:
                     trace.mark("first_played_speech")
                 trace.playing = True
@@ -694,60 +886,91 @@ async def run(
 
     link_task = None
     failure = None
+    hold_silence_verified = False
+    interruption_verified = False
     try:
         async with asyncio.timeout(MAX_SECONDS):
             await asyncio.wait_for(llm.ready.wait(), 15)
             trace.mark("voice_ready")
             link_task = asyncio.create_task(link())
             await speak(0)
-            await until(lambda: bool(trace.digits))
-            if trace.digits != ["2"]:
-                raise RuntimeError("incorrect_menu_choice")
-            await until(idle)
-            before = len(trace.captions)
-            await speak(1)
-            await until(lambda: len(trace.captions) > before)
-            await until(idle)
-            number_answer = " ".join(trace.captions[before:])
-            normalized = re.sub(r"\D", "", number_answer)
-            if "00420420" not in normalized:
-                # Word-normalized check remains deterministic and independent
-                # of the known briefing fact's presence in the caller prompt.
-                words = {
-                    w: str(i)
-                    for i, w in enumerate(
-                        "zero one two three four five six seven eight nine".split()
-                    )
-                }
-                spoken = re.sub(
-                    r"\b(" + "|".join(words) + r")\b", lambda m: words[m[0]], number_answer.lower()
-                )
-                if "00420420" not in re.sub(r"\D", "", spoken):
-                    raise RuntimeError("incorrect_spoken_member_number")
-            before = len(trace.captions)
-            await speak(2)
-            await until(lambda: len(trace.captions) > before)
-            await until(idle)
-            if not re.search(r"\byes\b", " ".join(trace.captions[before:]), re.I):
-                raise RuntimeError("readback_not_confirmed")
-            before = len(trace.captions)
-            before_played = trace.last_played
-            await speak(3)
-            if allow_balance_clarification:
-                await until(lambda: provider.stopped.is_set() or len(trace.captions) > before, 30)
+            if scenario == "wrong_number":
+                await until(lambda: provider.stopped.is_set() or bool(trace.captions))
                 if not provider.stopped.is_set():
                     await until(lambda: provider.stopped.is_set() or idle())
                     if not provider.stopped.is_set():
-                        request = " ".join(trace.captions[before:])
-                        if (
-                            not balance_clarification_requested(request)
-                            or trace.last_played <= before_played
-                        ):
-                            raise RuntimeError("no_audible_balance_clarification_request")
-                        trace.mark("balance_clarification_requested", text=request)
-                        trace.balance_clarifications_played += 1
-                        await speak(4)
-            await until(provider.stopped.is_set, 30)
+                        await speak(1)
+                await until(provider.stopped.is_set, 30)
+            else:
+                await until(lambda: bool(trace.digits))
+                if trace.digits != ["2"]:
+                    raise RuntimeError("incorrect_menu_choice")
+                await until(idle)
+                before = len(trace.captions)
+                await speak(1)
+                await until(lambda: len(trace.captions) > before)
+                await until(idle)
+            if scenario == "missing_information":
+                await speak(2)
+                await until(provider.stopped.is_set, 30)
+            elif scenario != "wrong_number":
+                from dots_phone.text_eval_simulator import identifier_supplied
+
+                if not identifier_supplied("00420420", " ".join(trace.captions[before:])):
+                    raise RuntimeError("incorrect_spoken_member_number")
+                before = len(trace.captions)
+                await speak(2)
+                await until(lambda: len(trace.captions) > before)
+                await until(idle)
+                if not re.search(r"\byes\b", " ".join(trace.captions[before:]), re.I):
+                    raise RuntimeError("readback_not_confirmed")
+                before = len(trace.captions)
+                before_played = trace.last_played
+                await speak(3)
+                if scenario == "hold":
+                    # Permit an immediate acknowledgement, then require actual
+                    # PCM playback silence throughout a four-second hold.
+                    await asyncio.sleep(0.8)
+                    voiced_before = trace.played_voiced_samples
+                    hold_end = time.monotonic() + 4
+                    await until(lambda: time.monotonic() >= hold_end, 6)
+                    if provider.stopped.is_set():
+                        raise RuntimeError("call_ended_during_hold")
+                    if trace.played_voiced_samples != voiced_before:
+                        raise RuntimeError("audible_speech_during_automated_hold")
+                    hold_silence_verified = True
+                    trace.mark("hold_silence_verified", seconds=4)
+                    await speak(4)
+                elif scenario == "interruption":
+                    await until(lambda: trace.playing or provider.stopped.is_set())
+                    if provider.stopped.is_set():
+                        raise RuntimeError("ended_before_requested_numeric_confirmation")
+                    interruption_start = len(trace.events)
+                    await speak(4)
+                    interruption_verified = any(
+                        event["kind"] == "playback_cleared"
+                        and event.get("reason") == "native_interruption"
+                        for event in trace.events[interruption_start:]
+                    )
+                    if not interruption_verified:
+                        raise RuntimeError("numeric_correction_did_not_interrupt_playback")
+                elif allow_balance_clarification:
+                    await until(
+                        lambda: provider.stopped.is_set() or len(trace.captions) > before, 30
+                    )
+                    if not provider.stopped.is_set():
+                        await until(lambda: provider.stopped.is_set() or idle())
+                        if not provider.stopped.is_set():
+                            request = " ".join(trace.captions[before:])
+                            if (
+                                not balance_clarification_requested(request)
+                                or trace.last_played <= before_played
+                            ):
+                                raise RuntimeError("no_audible_balance_clarification_request")
+                            trace.mark("balance_clarification_requested", text=request)
+                            trace.balance_clarifications_played += 1
+                            await speak(4)
+                await until(provider.stopped.is_set, 30)
     except Exception as exc:
         failure = str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__
         trace.mark("test_failed", failure=failure)
@@ -765,7 +988,14 @@ async def run(
         else:
             with contextlib.suppress(Exception):
                 pipeline.result()
-        await codex.close()
+        try:
+            await finish_post_call_review(service, call_id, trace)
+        except Exception as exc:
+            failure = failure or (str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__)
+            trace.mark("post_call_review_failed", failure=type(exc).__name__)
+        finally:
+            await service.post_call_reviews.close()
+            await codex.close()
         for stream in tracks:
             stream.close()
         with wave.open(str(directory / "ivr.wav"), "rb") as stream:
@@ -777,15 +1007,14 @@ async def run(
         usage_cost = None
         if confirmed:
             usage_cost = sum(response_cost(row) for row in llm.response_usage.values())
-        conclusion = final.get("conclusion") or {}
-        verified = fixture_result_verified(conclusion)
+        conclusion, verified = observed_task_result(service, final, scenario, trace.captions)
         if inject_balance_transcript_mismatch and not failure:
             if set(trace.transcription_fault_items) != {3, 4}:
                 failure = "transcription_fault_recovery_not_exercised"
             elif trace.balance_clarifications_played != 1:
                 failure = "transcription_fault_requires_one_recipient_clarification"
         if not failure and not verified:
-            failure = "incorrect_fixture_balance"
+            failure = "incorrect_fixture_task_result"
         passed = (
             not failure
             and confirmed
@@ -795,6 +1024,11 @@ async def run(
         )
         result = {
             "passed": passed,
+            "scenario": scenario,
+            "telephone_codec_roundtrip": telephone_codec,
+            "task_result": conclusion,
+            "hold_silence_verified": hold_silence_verified,
+            "interruption_verified": interruption_verified,
             "response_policy": response_policy,
             "voice_effort": voice_effort,
             "allow_balance_clarification": allow_balance_clarification,
@@ -837,6 +1071,8 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--runtime-file", type=Path)
     parser.add_argument("--live", action="store_true")
+    parser.add_argument("--scenario", choices=SCENARIOS, default="balance")
+    parser.add_argument("--telephone-codec", action="store_true")
     parser.add_argument(
         "--response-policy",
         choices=["direct_with_codex", "always_consult"],
@@ -858,6 +1094,7 @@ def main():
             voice_effort=args.voice_effort,
             allow_balance_clarification=args.allow_balance_clarification,
             inject_balance_transcript_mismatch=args.inject_balance_transcript_mismatch,
+            scenario=args.scenario,
         )
         print(
             json.dumps(
@@ -882,6 +1119,8 @@ def main():
             voice_effort=args.voice_effort,
             allow_balance_clarification=args.allow_balance_clarification,
             inject_balance_transcript_mismatch=args.inject_balance_transcript_mismatch,
+            scenario=args.scenario,
+            telephone_codec=args.telephone_codec,
         )
     )
     print(

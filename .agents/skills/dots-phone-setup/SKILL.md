@@ -14,6 +14,14 @@ and registration details. Resolve commands from the repository root. The README
 prompt can load this file directly before the phone plugin is installed; the
 installed `dots-phone` skill handles calls after setup.
 
+Check that the user's own account supports custom MCP/plugin registration and
+Secure MCP Tunnels before asking them to obtain paid provider resources. If those
+features are unavailable, complete the credential-free offline checks and report
+the default connection path as unavailable. Do not promise a hosted signup or
+public marketplace installation. Use [troubleshooting](../../../docs/SUPPORT.md)
+for common failures and the local setup guide's upgrade procedure for an existing
+installation.
+
 Inspect existing tools, checkout and running services first. Reuse a suitable
 installation without overwriting its files. Preserve encryption keys, owner
 identity, budgets, source permissions, registration and explicit user choices.
@@ -41,6 +49,15 @@ available unfiltered fallback. Preserve any filter setting on an existing instal
 unless the task calls for changing it. Rollback is `INPUT_FILTER=off` between calls;
 the guide also explains removing the overlay's model mount.
 
+Optional [local audio review](../../../docs/LOCAL-SETUP.md#optional-local-audio-review)
+is a separate, explicit choice and stays off by default. If requested, use
+`python -m dots_phone.audio_review_assets` and its `--model medium.en` option to
+prepare checksum-verified primary and confirmation files outside the checkout
+(about 2 GB total), verify them offline and include
+`compose.audio-review.yaml` consistently with a read-only mount. It requires
+retained recording data; preserve recording opt-outs. Do not imply that independent
+recognition guarantees correct numeric reports or resolves every transcript conflict.
+
 Start the host Codex worker using the generated private reasoner directory and
 ChatGPT sign-in. Keep that directory consistent with the service mount. Dots and
 the worker have separate tool access: mail and other read plugins are optional,
@@ -54,6 +71,16 @@ discovery where linking is available. `get_phone_workflow` reads the static call
 instructions without dialing. Distinguish a native skill import from that fallback.
 Check the installed bundle version; editing a checkout does not refresh an
 already installed plugin snapshot.
+
+Use `python -m dots_phone.setup check` with the same `--env-file` and repeated
+`--compose-file` options as service startup, plus `--running` after startup.
+It renders configuration privately and reports actionable local checks without
+credential or path values. For frozen rendered Compose, pass that file directly;
+the running check can inspect its existing project tunnel container. `--json`
+returns structured results. Resolve incomplete items without rotating keys or
+changing explicit choices. A passing local diagnostic does not establish remote
+registration eligibility, authenticated linking, paid model/carrier behavior,
+acoustic quality or mailbox access.
 
 Keep `DOTS_PHONE_DRY_RUN=true`. Setup alone does not authorize `start_call`, paid
 model evaluations, email queries or purchases. Existing explicit authorization

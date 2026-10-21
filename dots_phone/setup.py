@@ -157,7 +157,51 @@ def main():
     connection = package.add_mutually_exclusive_group(required=True)
     connection.add_argument("--app-id")
     connection.add_argument("--mcp-url")
+    check = commands.add_parser(
+        "check", help="inspect local readiness without dialing or changing configuration"
+    )
+    check.add_argument("--directory", type=Path, default=Path(".secrets"))
+    check.add_argument("--env-file", type=Path)
+    check.add_argument("--compose-file", type=Path, action="append", default=[])
+    check.add_argument(
+        "--profile",
+        action="append",
+        default=[],
+        help="Compose profile to render (default: connection)",
+    )
+    check.add_argument(
+        "--running",
+        action="store_true",
+        help="also inspect existing containers and their local health",
+    )
+    check.add_argument(
+        "--json", action="store_true", help="emit the same sanitized checklist as JSON"
+    )
     args = parser.parse_args()
+    if args.command == "check":
+        from dots_phone.setup_check import check_setup, finish, format_report
+
+        try:
+            report = check_setup(
+                directory=args.directory,
+                env_file=args.env_file,
+                compose_files=args.compose_file,
+                profiles=args.profile,
+                running=args.running,
+            )
+        except Exception:
+            report = finish(
+                [
+                    {
+                        "id": "diagnostic",
+                        "status": "incomplete",
+                        "message": "Local inspection failed. Check file access and command availability locally; private values were suppressed.",
+                    }
+                ],
+                args.running,
+            )
+        print(json.dumps(report, indent=2) if args.json else format_report(report))
+        raise SystemExit(0 if report["status"] == "ready" else 1)
     try:
         if args.command == "init":
             setup_destination(args.directory)

@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest a use case or improvement for the experimental preview.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the need using fictional details. Keep phone numbers, account information,
+        inbox contents and real-call records out of this public request.
+  - type: textarea
+    id: need
+    attributes:
+      label: What would you like Dots to help with?
+      description: Explain the goal, where the current preview falls short, and what a useful result would look like.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds
+      description: Optional context about how you handle this today.

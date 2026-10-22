@@ -51,13 +51,13 @@ function frame(number, section, content, footer = 'SELF-HOSTED EXPERIMENTAL PREV
 const gallery = [
   {
     name: '01-let-dots-call',
-    svg: frame('01', 'FOR THE CALLS YOU PUT OFF',
+    svg: frame('01', 'BUILT FOR OPENAI DOTS',
       txt(62, 205, 'Let Dots', 73, c.paper, 500, -4.2) + txt(62, 279, 'make the call.', 73, c.lime, 500, -4.2) +
-      multi(66, 385, ['A phone assistant for errands', 'that still need a conversation.'], 25, c.muted, 1.48) +
+      multi(66, 385, ['An independent plugin for OpenAI Dots.', 'For errands that still need a call.'], 25, c.muted, 1.48) +
       pill(66, 520, 150, 'OPEN SOURCE') + pill(229, 520, 176, 'YOUR ACCOUNTS') +
       txt(698, 151, 'FICTIONAL WALKTHROUGH', 10, c.quiet, 500, 1.8) +
       rect(674, 175, 534, 409, '#121911', '#3e5033', 17) +
-      logo(706, 205, 6, 3) + txt(736, 220, 'YOU → DOTS', 10, c.muted, 500, 1.5) +
+      logo(706, 205, 6, 3) + txt(736, 220, 'YOU → OPENAI DOTS', 10, c.muted, 500, 1.5) +
       multi(706, 290, ['Find out when my', 'replacement washing', 'machine will arrive.'], 34, c.paper, 1.2, 400, -1) +
       line(706, 435, 1176, 435, '#35432d') +
       txt(706, 473, 'BEFORE DIALING', 10, c.lime, 500, 1.6) +
@@ -145,9 +145,10 @@ const thumbnail = svg(240, 240,
 const social = svg(1200, 630,
   `<ellipse cx="950" cy="300" rx="530" ry="470" fill="url(#haze)"/>` +
   logo(62, 48, 8, 4) + txt(96, 69, 'dots', 31, c.paper, 600, -1.2) + txt(170, 68, '/ phone', 17, c.muted) +
+  txt(879, 66, 'BUILT FOR OPENAI DOTS', 11, c.lime, 500, 1.4) +
   line(62, 97, 1138, 97) +
   txt(62, 224, 'Let Dots', 88, c.paper, 500, -5.5) + txt(62, 314, 'make the call.', 88, c.lime, 500, -5.5) +
-  txt(66, 448, 'A phone assistant for the errands you put off.', 26, c.muted) +
+  txt(66, 448, 'An independent phone plugin for OpenAI Dots.', 26, c.muted) +
   pill(66, 520, 150, 'OPEN SOURCE') + pill(230, 520, 208, 'SELF-HOSTED PREVIEW') +
   `<g transform="translate(925 215) rotate(-12 80 80)">${logo(0, 0, 66, 25)}</g>` +
   txt(66, 597, 'YOUR ACCOUNTS · PROVIDER CHARGES APPLY', 10, c.quiet, 500, 1.7));

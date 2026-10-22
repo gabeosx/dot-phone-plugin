@@ -2,7 +2,8 @@
 
 ### Let Dots make the call.
 
-A phone assistant for the errands that still require a conversation.
+An independent phone-calling plugin for **OpenAI Dots**. Tell Dots what you need;
+it prepares the brief, handles the call and brings the result back.
 
 [![Dots checking a replacement washing machine delivery](website/assets/repo-preview.jpg)](https://phone.gabea.nyc/demo/)
 
@@ -66,7 +67,7 @@ You’ll need:
 | Requirement | What it’s for |
 | --- | --- |
 | Docker Compose, uv, Node and Codex CLI | Run the local service and reasoning worker. uv installs Python 3.13 and the locked dependencies. |
-| OpenAI API project | Realtime voice. API usage is billed separately from ChatGPT. |
+| OpenAI API project | Realtime voice, paid through your API account. |
 | Twilio account and voice-capable number | Connect the call to the telephone network. Carrier charges apply. |
 | ChatGPT access to Codex and custom MCP/plugin registration | Connect Dots and run the signed-in reasoning worker. |
 | HTTPS/WSS tunnels | Let ChatGPT and Twilio reach the service on your computer. |

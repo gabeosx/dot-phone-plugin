@@ -1,5 +1,9 @@
 # Set up Dots Phone
 
+Dots Phone is an independent phone-calling plugin for **OpenAI Dots**. Give Dots a
+phone task; it coordinates the brief, call, any permitted Codex lookups and the
+result.
+
 Use the [Codex setup prompt](../README.md#set-up-with-codex) to work through this
 with an assistant, or follow the steps below. The result is a service on your own
 computer connected to your own accounts. Keep the computer and its tunnels running

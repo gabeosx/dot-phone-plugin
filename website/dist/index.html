@@ -4,22 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#090b0d">
-  <meta name="description" content="An open-source phone assistant for the errands that still need a conversation. Prepare a brief, choose allowed tools, and run Dots on your computer. Experimental preview.">
+  <meta name="description" content="An independent phone-calling plugin for OpenAI Dots. Ask your Dot to handle a call, prepare the brief and bring back the answer. Open source and self-hosted.">
   <link rel="canonical" href="https://phone.gabea.nyc/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Dots Phone">
-  <meta property="og:title" content="Dots Phone — Let Dots make the call.">
-  <meta property="og:description" content="A phone assistant for the errands that still need a conversation. Open source. Self-hosted. Experimental preview.">
+  <meta property="og:title" content="Dots Phone — Phone calls for OpenAI Dots">
+  <meta property="og:description" content="An independent plugin for OpenAI Dots. Your Dot prepares the brief, makes the call and reports back. Open source. Self-hosted.">
   <meta property="og:url" content="https://phone.gabea.nyc/">
-  <meta property="og:image" content="https://phone.gabea.nyc/social-card.png">
+  <meta property="og:image" content="https://phone.gabea.nyc/social-card.png?v=20261022-dots">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Dots Phone. Let Dots make the call. Open-source, self-hosted experimental preview.">
+  <meta property="og:image:alt" content="Dots Phone. A phone-calling plugin for OpenAI Dots. Independent, open-source preview.">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Dots Phone — Let Dots make the call.">
-  <meta name="twitter:description" content="A phone assistant for the errands that still need a conversation. Open-source, self-hosted experimental preview.">
-  <meta name="twitter:image" content="https://phone.gabea.nyc/social-card.png">
-  <title>Dots Phone — Let Dots make the call.</title>
+  <meta name="twitter:title" content="Dots Phone — Phone calls for OpenAI Dots">
+  <meta name="twitter:description" content="An independent plugin for OpenAI Dots. Your Dot prepares the brief, makes the call and reports back. Open source. Self-hosted.">
+  <meta name="twitter:image" content="https://phone.gabea.nyc/social-card.png?v=20261022-dots">
+  <title>Dots Phone — Phone calls for OpenAI Dots</title>
   <link rel="icon" href="./favicon.svg?v=3683abb69473" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css?v=a4d6e6dd6e51">
   <link rel="stylesheet" href="./film.css?v=5caa3361b445">
@@ -33,8 +33,8 @@
   </header>
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-heading">
-      <div class="hero-heading-group"><p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Dots Phone · Open-source preview</p><h1 id="hero-heading">Let Dots <span>make the call.</span></h1></div>
-      <div class="hero-bottom"><p>Give it the call you’ve been putting off. Dots can talk to customer service for you, using the information and apps you choose to share.</p><a class="primary-link" href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/QUICKSTART.md" target="_blank" rel="noopener noreferrer">Get started <span aria-hidden="true">↗</span></a></div>
+      <div class="hero-heading-group"><p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Built for OpenAI Dots</p><h1 id="hero-heading">Let your Dot <span>make the call.</span></h1></div>
+      <div class="hero-bottom"><p>Dots Phone is an independent plugin for OpenAI Dots. Give your Dot a customer-service call; it prepares the brief, makes the call and reports back.</p><a class="primary-link" href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/QUICKSTART.md" target="_blank" rel="noopener noreferrer">Get started <span aria-hidden="true">↗</span></a></div>
     </section>
     <section class="demo-section wrap" id="demo" aria-labelledby="demo-heading">
       <div class="demo-header"><h2 id="demo-heading">Finding out where the washing machine is.</h2><span>Product walkthrough <span aria-hidden="true">/</span> 24 seconds</span></div>
@@ -45,7 +45,7 @@
       <div class="section-heading"><div><p class="eyebrow">Under the hood</p><h2 id="architecture-heading">It knows when<br>to ask for help.</h2></div><p>Realtime handles the conversation. When a question needs more information or reasoning, it can bring in Codex without losing the call.</p></div>
       <div class="architecture" role="group" aria-label="Dots prepares a briefing. Realtime voice speaks through Twilio, and can ask Codex to use permitted read tools. Codex reviews the result before Dots reports back.">
         <div class="arch-main">
-          <div class="arch-node"><span class="node-symbol node-dots" aria-hidden="true">⁙</span><span class="node-type">Before dialing</span><h3>Dots</h3><p>Gathers the details and saves the call briefing.</p></div>
+          <div class="arch-node"><span class="node-symbol node-dots" aria-hidden="true">⁙</span><span class="node-type">Before dialing</span><h3>OpenAI Dots</h3><p>Gathers the details and saves the call briefing.</p></div>
           <span class="arch-arrow" aria-hidden="true">→</span>
           <div class="arch-node arch-voice"><span class="node-symbol node-wave" aria-hidden="true">ııIıı</span><span class="node-type">During the call</span><h3>Realtime</h3><p>Answers from the briefing. Ordinary replies skip the extra reasoning step.</p></div>
           <span class="arch-arrow" aria-hidden="true">↔</span>
@@ -60,10 +60,10 @@
       <div class="ownership-details"><article><h3>Set the limits in the brief.</h3><p>Include what Dots may share and agree to. The document is saved before the call starts.</p></article><article><h3>Connect the apps you want.</h3><p>Codex uses the read tools you allow for that call. Email access is optional and requires authentication.</p></article><article><h3>Keep the service on your machine.</h3><p>Call records are encrypted locally. Model requests go to OpenAI; phone audio travels through Twilio.</p></article></div>
     </section>
     <section class="preview-section wrap" id="preview" aria-labelledby="preview-heading">
-      <div class="section-heading"><div><p class="eyebrow">Before you start</p><h2 id="preview-heading">Built for people<br>who like to tinker.</h2></div><p>This is an experimental preview you run on your computer. Bring your own accounts and start with dialing disabled.</p></div>
+      <div class="section-heading"><div><p class="eyebrow">Before you start</p><h2 id="preview-heading">Built for people<br>who like to tinker.</h2></div><p>Use it with OpenAI Dots and your own provider accounts. The phone service runs on your computer; setup starts with dialing disabled.</p></div>
       <div class="preview-grid">
         <article><span class="node-type">01 / Your computer</span><h3>A local service.</h3><p>Docker Compose, uv, Node and Codex CLI run the service and reasoning worker. The setup guide has a prompt for Codex to help.</p></article>
-        <article><span class="node-type">02 / Your accounts</span><h3>Voice + phone connection.</h3><p>You need OpenAI API access, a Twilio number, HTTPS/WSS tunnels, and eligible ChatGPT custom plugin access. Check registration access before buying services.</p></article>
+        <article><span class="node-type">02 / Your accounts</span><h3>Voice + phone connection.</h3><p>You need OpenAI Dots, OpenAI API access, a Twilio number, HTTPS/WSS tunnels, and eligible ChatGPT custom plugin access. Check registration access before buying services.</p></article>
         <article><span class="node-type">03 / Your limits</span><h3>Start small.</h3><p>Set what Dots may share and agree to. Calls can be incomplete, and unfamiliar phone menus or unclear speech can cause mistakes.</p></article>
       </div>
       <p class="preview-evidence"><a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/VALIDATION.md" target="_blank" rel="noopener noreferrer">Read the test coverage and known limits <span aria-hidden="true">↗</span></a></p>
@@ -71,6 +71,7 @@
     <section class="faq-section wrap" id="questions" aria-labelledby="faq-heading">
       <div><p class="eyebrow">A few details</p><h2 id="faq-heading">Before the<br>first call.</h2></div>
       <div class="faq-list">
+        <details><summary>How does it work with OpenAI Dots?</summary><p>Dots Phone adds phone calls to your Dot. Ask in your Dots conversation; your Dot prepares the brief, coordinates the call and brings the result back to the same conversation. The phone service runs locally, with Codex available for reasoning and permitted lookups.</p></details>
         <details><summary>What does it cost?</summary><p>Dots uses your OpenAI and Twilio accounts. OpenAI charges for API voice usage; Twilio charges for the phone number and calls. Your tunnel service may also charge. Codex reasoning uses your ChatGPT plan’s allowance, which is separate from API billing. Call budgets use estimates rather than live billing.</p></details>
         <details><summary>Does it need access to my email?</summary><p>No. You can supply the facts in the brief. Connected read tools are optional, require your own authentication, and must be allowed for the call.</p></details>
         <details><summary>Where does my data go?</summary><p>The service keeps encrypted call records locally. Model requests go to OpenAI and phone audio travels through Twilio. Connected tools and tunnels have their own data handling. Worker exchange files rely on local file permissions. <a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/PRIVACY.md" target="_blank" rel="noopener noreferrer">Read the data and retention details.</a></p></details>
@@ -78,7 +79,7 @@
         <details><summary>How do I get help?</summary><p><a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/SUPPORT.md" target="_blank" rel="noopener noreferrer">Start with troubleshooting</a> or <a href="https://github.com/gabeosx/dot-phone-plugin/issues" target="_blank" rel="noopener noreferrer">report a reproducible issue</a>. Share your version and a redacted error. Keep credentials, phone numbers, transcripts and private account details out of public issues.</p></details>
       </div>
     </section>
-    <section class="get-started wrap" id="get-started" aria-labelledby="get-started-heading"><div class="cta-copy"><p class="eyebrow">Experimental preview</p><h2 id="get-started-heading">Give Dots<br>your next call.</h2><p>The setup guide includes a prompt you can hand to Codex.</p><div class="cta-actions"><a class="primary-link" href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/QUICKSTART.md" target="_blank" rel="noopener noreferrer">Set up Dots Phone <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/gabeosx/dot-phone-plugin" target="_blank" rel="noopener noreferrer">View the code <span aria-hidden="true">↗</span></a></div><p class="setup-requirements">Bring your own provider accounts and run the service locally. Setup starts with dialing disabled. <a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licensed.</a></p></div><div class="cta-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div></section>
+    <section class="get-started wrap" id="get-started" aria-labelledby="get-started-heading"><div class="cta-copy"><p class="eyebrow">Experimental preview</p><h2 id="get-started-heading">Give your Dot<br>your next call.</h2><p>The setup guide includes a prompt you can hand to Codex.</p><div class="cta-actions"><a class="primary-link" href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/QUICKSTART.md" target="_blank" rel="noopener noreferrer">Set up Dots Phone <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/gabeosx/dot-phone-plugin" target="_blank" rel="noopener noreferrer">View the code <span aria-hidden="true">↗</span></a></div><p class="setup-requirements">Bring your own provider accounts and run the service locally. Setup starts with dialing disabled. <a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licensed.</a></p></div><div class="cta-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div></section>
   </main>
   <footer class="site-footer wrap"><a class="wordmark" href="#" aria-label="Back to top"><span class="brand-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>dots<span class="wordmark-product"> / phone</span></span></a><nav aria-label="Project resources"><a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/SUPPORT.md" target="_blank" rel="noopener noreferrer">Support <span aria-hidden="true">↗</span></a><a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/VALIDATION.md" target="_blank" rel="noopener noreferrer">Test coverage <span aria-hidden="true">↗</span></a><a href="https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/PRIVACY.md" target="_blank" rel="noopener noreferrer">Privacy &amp; data <span aria-hidden="true">↗</span></a></nav></footer>
 </body>

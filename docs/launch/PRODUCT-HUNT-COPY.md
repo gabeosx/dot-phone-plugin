@@ -12,16 +12,16 @@ self-hosted preview described in the [README](../../README.md).
 Dots Phone
 ```
 
-**Tagline** — 55 characters
+**Tagline** — 38 characters
 
 ```text
-A self-hosted assistant for the phone calls you put off
+A phone-calling plugin for OpenAI Dots
 ```
 
-**Description** — 206 characters; checked by `website/assets/launch/verify.py`
+**Description** — 231 characters; checked by `website/assets/launch/verify.py`
 
 ```text
-Dots makes customer-service calls for errands like delivery updates. It prepares a brief and asks Codex for missing details in apps you allow. Open source. Self-hosted. Uses your OpenAI and Twilio accounts.
+Dots Phone is an independent plugin for OpenAI Dots. Give Dots a phone task: it prepares a brief, makes the call, asks Codex for missing details when needed, and reports the result. Self-hosted with your OpenAI and Twilio accounts.
 ```
 
 **Primary URL**
@@ -70,11 +70,11 @@ gallery images are uploaded to the saved draft; verify their order before schedu
 Owner: review the personal perspective before pasting from the `@gabea` account.
 
 ```text
-Hi Product Hunt — I’m Gabe, the maker of Dots Phone.
+Hi Product Hunt — I’m Gabe, the maker of Dots Phone, an independent phone-calling plugin for OpenAI Dots.
 
 Some errands still end with “you’ll need to call us.” Dots Phone is for those conversations: checking a delivery, following up with customer service, or getting an answer that isn’t available online.
 
-Tell Dots what you need and what it may agree to. It gathers the details, saves a brief, and makes the call. If a question needs missing information, Codex can look it up through the apps you allow. Dots then reports the result and anything that still needs your attention.
+Tell Dots what you need and what it may agree to. Dots gathers the details, saves a brief, and uses Dots Phone to make the call. If a question needs missing information, Codex can look it up through the apps you allow. Dots then reports the result and anything that still needs your attention.
 
 Watch the 60-second demo: https://phone.gabea.nyc/demo/
 
@@ -89,11 +89,18 @@ Dots Phone is an independent, self-hosted project, not affiliated with or endors
 
 **Who is this for?**
 
-Technical early adopters who use Codex and are comfortable running Docker,
-configuring provider accounts, and reviewing a call's scope. This preview is
+Technical early adopters who use OpenAI Dots and Codex and are comfortable running
+Docker, configuring provider accounts, and reviewing a call's scope. This preview is
 self-hosted. You need eligible ChatGPT custom plugin registration access; check
 that before buying provider services. The [quickstart](../QUICKSTART.md) lists
 the prerequisites.
+
+**How does it work with OpenAI Dots?**
+
+Give Dots a phone task in a normal conversation. It gathers the details, prepares a
+brief and uses the Dots Phone plugin to make the call. Codex can look up missing
+information through the apps you allow, and Dots reports the result. You run the
+plugin's service on your own computer and connect it to Dots with your own accounts.
 
 **Can I try it in my browser?**
 
@@ -178,13 +185,13 @@ post URL after launch. These drafts invite feedback; they do not ask for votes.
 **Short social post**
 
 ```text
-I’m launching Dots Phone: a self-hosted phone assistant for calls you put off. It prepares a brief and can ask Codex for missing details during the call. Experimental preview; bring your own provider accounts. I’d love your feedback: PRODUCT_HUNT_LAUNCH_URL
+I’m launching Dots Phone, an independent phone-calling plugin for OpenAI Dots. Give Dots a task: it prepares a brief, makes the call and reports back, with Codex handling missing details when needed. Self-hosted experimental preview. I’d love your feedback: PRODUCT_HUNT_LAUNCH_URL
 ```
 
 **Longer post or community introduction**
 
 ```text
-I’m sharing Dots Phone on Product Hunt today. It’s an open-source, self-hosted experimental phone assistant: prepare a brief, make the call, and bring in Codex for missing information from permitted read tools.
+I’m sharing Dots Phone on Product Hunt today. It’s an independent phone-calling plugin for OpenAI Dots. Give Dots a task: it prepares a brief, makes the call, and brings in Codex for missing information from permitted read tools. Dots reports the result. This is an open-source, self-hosted experimental preview.
 
 Watch a 60-second recording using fictional order details and an owned automated test recipient: https://phone.gabea.nyc/demo/
 

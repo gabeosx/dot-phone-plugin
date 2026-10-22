@@ -10,6 +10,11 @@ Experimental, self-hosted preview.
   IVR navigation stays listen-first and answers only the menu or question asked.
 - Added regression coverage across general, task, autonomous and source-enabled
   routes, including quiet IVR startup and explicitly requested disclosures.
+- Pin patched Pillow 13.0.0 through an explicit `uv` override in both supported
+  projects and remove the prior Pillow vulnerability exceptions. Pipecat remains
+  at 1.12.0; its upstream Pillow upper bound has not yet caught up. Use the
+  documented `uv` or Docker installation so the reviewed override is applied;
+  generic `pip` resolution does not apply it. See [dependency security](DEPENDENCY-SECURITY.md).
 - Added an independent-project notice and [usage responsibilities](USAGE.md),
   covering provider costs, outcome review, calling/recording permissions and the
   existing MIT warranty terms.

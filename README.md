@@ -4,15 +4,16 @@
 
 A phone assistant for the errands that still require a conversation.
 
-[![Dots checking a replacement washing machine delivery](website/assets/repo-preview.jpg)](https://phone.gabea.nyc)
+[![Dots checking a replacement washing machine delivery](website/assets/repo-preview.jpg)](https://phone.gabea.nyc/demo/)
 
-**[Set up with Codex](#set-up-with-codex)** · [Watch the example](https://phone.gabea.nyc) · [Test results](docs/VALIDATION.md)
+**[Set up with Codex](#set-up-with-codex)** · [Watch the demo](https://phone.gabea.nyc/demo/) · [Test results](docs/VALIDATION.md)
 
 > “Find out when my replacement washing machine will arrive.”
 
-Dots gathers the order details and writes a brief before dialing. If the retailer
-asks for a delivery reference that wasn’t included, Codex can find it in a connected
-Gmail account during the call. Dots then reports what the retailer confirmed.
+The [60-second demo](https://phone.gabea.nyc/demo/) follows an actual Dots request:
+preparing a brief from a fictional order confirmation in a connected Page,
+calling an owned automated test recipient, navigating its IVR with keypad
+verification, and returning the reviewed answer. The Page is read before dialing.
 
 The demo uses fictional details. This is an **experimental preview** you run on your
 own computer, with your own accounts and credentials. It is for technical early
@@ -96,8 +97,8 @@ the call’s scope and limits and stores encrypted call records. Model requests 
 to OpenAI; phone audio travels through Twilio.
 
 Results can be incomplete when a source is unavailable or the conversation is
-unclear. See the [validation record](docs/VALIDATION.md) for measured response times
-and what has—and hasn’t—been tested.
+unclear. See the [validation record](docs/VALIDATION.md) for tested behavior and
+known limits.
 
 ## Working on the project
 
@@ -110,5 +111,10 @@ These checks use fixtures and mocks; they do not call anyone.
 
 [Local setup](docs/LOCAL-SETUP.md) · [Operations](docs/RUNBOOK.md) · [Privacy](docs/PRIVACY.md)
 · [Troubleshooting and support](docs/SUPPORT.md) · [Upgrade](docs/LOCAL-SETUP.md#upgrade-an-existing-installation)
+
+Dots Phone is an independent, self-hosted project, not affiliated with or endorsed
+by OpenAI or Twilio. Results are not guaranteed; review important results. You are
+responsible for charges to your connected accounts, including when a call fails,
+and for the permissions needed to use them. See [usage and responsibilities](docs/USAGE.md).
 
 [MIT licensed](LICENSE). [Third-party licenses and notices](docs/DEPENDENCY-LICENSES.md) are retained.

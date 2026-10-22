@@ -65,6 +65,15 @@ async def test_telephony_options_bound_duration_no_recording_or_redial(brief):
     assert options.twiml_options.custom_parameters == {"dots_call_id": "owned-job"}
     assert options.session_config["delegation"] == {"type": "client"}
     assert options.session_config["audio"]["format"] == {"type": "audio/pcmu", "rate": 8000}
+    assert "without a routine unsolicited AI introduction" in options.session_config["instructions"]
+    assert (
+        "If asked about your identity or whether you are AI, answer truthfully"
+        in options.session_config["instructions"]
+    )
+    assert (
+        "Follow explicit call-specific disclosure requirements"
+        in options.session_config["instructions"]
+    )
     assert len(captured) == 1
 
 
@@ -110,6 +119,25 @@ def test_undisclosed_facts_excluded_from_voice_context(brief):
     config = voice_config({"brief": brief.model_dump(mode="json")})
     assert "2026-11-06" not in config["instructions"]
     assert "client" == config["delegation"]["type"]
+
+
+def test_legacy_voice_uses_task_opening_and_preserves_explicit_disclosures(brief):
+    requirement = "Tell the person before the request that you are an AI assistant."
+    brief.constraints = [requirement]
+    instructions = voice_config({"brief": brief.model_dump(mode="json")})["instructions"]
+    assert (
+        "make the approved request directly without a routine unsolicited AI introduction"
+        in instructions
+    )
+    assert "If asked about your identity or whether you are AI, answer truthfully" in instructions
+    assert "never claim to be human or the owner" in instructions
+    assert (
+        "Follow explicit call-specific disclosure requirements in the approved brief"
+        in instructions
+    )
+    assert requirement in instructions
+    assert "Stay silent through automated greetings and menus" in instructions
+    assert "Introduce yourself briefly as an AI assistant" not in instructions
 
 
 async def test_supervisor_update_does_not_succeed_on_missing_voice_socket():

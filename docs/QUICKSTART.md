@@ -30,6 +30,12 @@ install; the service uses local SQLite.
 
 ## Get your accounts and credentials
 
+Dots Phone is an independent, self-hosted project, not affiliated with or endorsed
+by OpenAI or Twilio. Results are not guaranteed; review important results. You are
+responsible for charges to your connected accounts, including when a call fails,
+and for the permissions needed to use them. Read [usage and responsibilities](USAGE.md)
+before adding credentials.
+
 | Required item | What to obtain | Where to get it |
 | --- | --- | --- |
 | OpenAI API project | An API key, funded API billing, and access to the configured Realtime model. | [API keys](https://platform.openai.com/api-keys) · [API billing](https://platform.openai.com/settings/organization/billing/overview) |

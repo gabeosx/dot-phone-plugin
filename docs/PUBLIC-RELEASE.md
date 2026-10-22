@@ -2,8 +2,10 @@
 
 Dots Phone is an experimental, self-hosted preview. Publishing its source does
 not provide a hosted calling service, provider credentials, or access to anyone's
-mailbox. The animated landing page is a fictional walkthrough; it does not dial a
-number or query Gmail.
+mailbox. The landing page hosts an approved recording of an owned-number test using
+fictional order details. Watching it does not place a call or access a mailbox.
+Demo media and private preparation/call evidence remain outside the public source
+and distributions.
 
 ## Public source boundary
 
@@ -35,7 +37,9 @@ project license does not relicense those packages or provider services. See
 The release checks exercise local orchestration, preparation documents, scoped
 tool access, fast ordinary replies, optional Codex reasoning, result validation,
 transcription-conflict handling, and packaging. Automated fixtures use synthetic
-records. The landing-page scenario is illustrative, including its Gmail lookup.
+records. The public demo uses fictional order-confirmation context before the
+call, then an actual owned-recipient IVR path and reviewed result. It does not
+demonstrate a Gmail or mid-call lookup.
 
 No-call model tests can exercise voice and reasoning behavior with prerecorded or
 synthetic audio without dialing a recipient. They do not establish performance

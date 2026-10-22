@@ -15,6 +15,11 @@ acoustic = [
     "faster-whisper==1.2.1",
 ]
 
+[tool.uv]
+# Match the production voice environment's fixed Pillow release.
+# See docs/DEPENDENCY-SECURITY.md at the repository root.
+override-dependencies = ["pillow==13.0.0"]
+
 [dependency-groups]
 dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0"]
 

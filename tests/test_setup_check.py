@@ -140,7 +140,7 @@ def local_containers(private, config):
     return containers
 
 
-def running_command(original, *, version="0.3.2"):
+def running_command(original, *, version="0.3.3"):
     def command(args):
         if args[:3] == ["docker", "image", "inspect"]:
             return "sha256:" + "f" * 64

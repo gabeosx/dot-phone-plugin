@@ -2,8 +2,9 @@
 
 The upload files live in [`website/assets/launch/`](../../website/assets/launch/).
 They use the site's dark background, lime accent and violet reasoning accent.
-All artwork is code-native SVG, with raster upload versions. No real-call data,
-recordings, inbox screenshots or personal identifiers are used.
+The static gallery artwork is code-native SVG, with raster upload versions. It
+uses fictional illustrations, with no call records, inbox screenshots or personal
+identifiers. The separate recorded demo is described below.
 
 ## Upload order
 
@@ -46,10 +47,20 @@ small release-artifact sanity check, not product validation.
 
 ## Demo usage
 
-The website's 24-second walkthrough uses fictional people, a fictional retailer,
-fictional email and compressed timing. These gallery illustrations explain that
-flow. They must retain their preview and fictional labels if cropped or edited.
-Do not call them a live-call recording or a screenshot of a completed real call.
-If the owner creates a video later, add the same disclosure in the video itself
-and its description, then use an accessible full YouTube URL in Product Hunt's
-optional video field. No video is required by this kit.
+The [60-second website demo](https://phone.gabea.nyc/demo/) is an edited recording
+of an actual Dots request, a brief prepared from a fictional order confirmation
+in a connected Page, a call to an owned automated test recipient, IVR navigation
+with keypad verification, and the reviewed result. The order details are
+available before dialing. No Gmail or mid-call source lookup appears in this
+recording. Preserve the disclosures about fictional details, the automated test
+recipient and editing when sharing it.
+
+The five gallery images remain authored fictional illustrations. Retain their
+preview and fictional labels when cropping or editing, and describe them as
+illustrations rather than frames from the recorded call. Their illustrated
+delivery window is separate from the recorded demo's result.
+
+Product Hunt's submission form accepts an optional YouTube or Loom URL, as
+observed on October 22. The demo is currently hosted on the website, so leave the
+video field empty. A YouTube or Loom upload is optional; if one is added later,
+verify public playback and carry over the demo disclosures.

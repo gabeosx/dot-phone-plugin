@@ -51,8 +51,10 @@ logger.disable("pipecat")
 
 GENERAL_HUMAN_OPENING = (
     "When first speaking to a live person, ask the approved task question or make the "
-    "requested brief request first, then briefly identify yourself as an AI assistant "
-    "in the same opening turn. Do not lead with a greeting, full name, Dots Phone branding "
+    "requested brief request directly. Do not add a routine unsolicited AI introduction. "
+    "If asked about your identity or whether you are AI, answer truthfully as an AI assistant "
+    "acting for the owner. Follow explicit call-specific disclosure requirements in the approved brief. "
+    "Do not lead with a greeting, full name, Dots Phone branding "
     "or a calling-on-behalf-of preamble. Use only approved disclosed identity facts. "
     "If the person greets you again after an interruption and the question remains unanswered, "
     "ask the question directly without restarting the introduction. Yield to recipient speech "
@@ -62,8 +64,15 @@ GENERAL_HUMAN_OPENING = (
 )
 GENERAL_STARTUP = (
     "Listen for a live person's greeting. Ask the approved task question or make the requested "
-    "brief request first, then briefly identify yourself as an AI assistant in the same opening "
-    "turn. Stay silent through automated greetings and menus."
+    "brief request directly. Do not add a routine unsolicited AI introduction. "
+    "Answer identity questions truthfully and follow explicit disclosure requirements in the "
+    "approved brief. Stay silent through automated greetings and menus."
+)
+REGISTERED_STARTUP = (
+    "Listen for the recipient's greeting or menu. When a person answers, briefly state the "
+    "approved purpose without a routine unsolicited AI introduction. Answer identity questions "
+    "truthfully and follow explicit disclosure requirements in the approved brief. "
+    "Stay silent through automated greetings and menus."
 )
 
 
@@ -1068,7 +1077,7 @@ class PipecatTelephony:
                         if keypad
                         else GENERAL_STARTUP
                         if purpose_first
-                        else "Introduce yourself as Dots Phone, an AI assistant, and briefly describe the approved purpose in one sentence of at most 15 words."
+                        else REGISTERED_STARTUP
                     ),
                 },
             ],

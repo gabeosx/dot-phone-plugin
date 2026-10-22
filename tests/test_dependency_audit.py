@@ -1,11 +1,37 @@
 import json
+import tomllib
 from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from packaging.requirements import Requirement
+from packaging.version import Version
 
 from scripts.dependency_audit import evaluate, main
+
+
+@pytest.mark.parametrize("project", [".", "experiments/pipecat"])
+def test_supported_voice_projects_lock_fixed_pillow_without_exceptions(project):
+    root = Path(__file__).resolve().parents[1]
+    if (
+        project == "experiments/pipecat"
+        and not (root / project / "pyproject.toml").exists()
+        and root == Path("/app")
+        and Path("/.dockerenv").is_file()
+        and not (root / ".git").exists()
+    ):
+        # The base Docker image includes worker scripts, not the experimental
+        # project's dependency metadata. Full checkouts must validate both.
+        pytest.skip("Experimental project metadata is excluded from the base runtime image")
+    config = tomllib.loads((root / project / "pyproject.toml").read_text())
+    lock = tomllib.loads((root / project / "uv.lock").read_text())
+    pillow = next(package for package in lock["package"] if package["name"] == "pillow")
+    assert Version(pillow["version"]) >= Version("13.0.0")
+    overrides = [Requirement(value) for value in config["tool"]["uv"]["override-dependencies"]]
+    override = next(item for item in overrides if item.name == "pillow")
+    assert pillow["version"] in override.specifier
+    assert json.loads((root / "scripts/dependency_exceptions.json").read_text()) == []
 
 
 def evidence(name="pillow", version="12.3.0", advisory="reviewed-id"):

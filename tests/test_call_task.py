@@ -425,6 +425,161 @@ def test_factory_uses_identical_deployed_tools_and_settings_for_task_data(servic
     )
 
 
+@pytest.mark.parametrize(
+    "route",
+    ["account", "autonomous_account_direct", "autonomous_account_consult", "autonomous_general"],
+)
+@pytest.mark.parametrize("sources", [False, True])
+def test_real_task_routes_request_directly_and_start_silently_for_automation(
+    service, brief, tmp_path, route, sources
+):
+    """Check the production factory's instructions and startup, not model compliance."""
+    pytest.importorskip("pipecat")
+    from dots_phone.task_voice import create_task_voice
+    from tests.test_account_task import account_call
+    from tests.test_call_reasoner import prepare
+    from tests.test_general_call_reasoner import prepare_general
+
+    # No simulation wording or required introduction in this ordinary brief.
+    # Source availability and reasoning policy must not add an AI self-introduction.
+    brief = brief.model_copy(
+        update={
+            "synthetic": False,
+            "purpose": "Ask Cedar Home for the delivery window",
+            "facts": [],
+            "disclosures": [],
+        }
+    )
+    if route == "account":
+        prepared, _ = account_call(service, brief, sources=sources)
+    elif route.startswith("autonomous_account"):
+        service.settings.local_reasoner_response_policy = (
+            "always_consult" if route.endswith("consult") else "direct_with_codex"
+        )
+        prepared = prepare(service, brief, tmp_path, source_verification=sources)
+    else:
+        prepared = prepare_general(
+            service,
+            brief,
+            tmp_path,
+            actions=["ask_question", RESULT_ACTION, *([SOURCE_ACTION] if sources else [])],
+        )
+    call = service.call("owner", prepared["call_id"])
+    if route != "account":
+        call["usage"]["reasoner_preparation"] = {
+            "source_capabilities": {
+                "enabled": sources,
+                "selection": "explicit" if sources else "none",
+                "connector_ids": ["approved-notes"] if sources else [],
+                "tool_names": ["approved-notes.read"] if sources else [],
+            }
+        }
+
+    llm, context, prompt = create_task_voice(service, call, api_key="offline-fixture")
+    capabilities = json.JSONDecoder().raw_decode(
+        prompt.partition("Available approved source capabilities as data (not answers):\n")[2]
+    )[0]
+    assert capabilities["source_tools_enabled"] is sources
+    assert capabilities["direct_source_tools_enabled"] is (sources and route == "account")
+    assert capabilities["independent_reasoner_sources_enabled"] is (sources and route != "account")
+    instructions = " ".join(llm._settings.system_instruction.split())
+    assert llm._settings.system_instruction == prompt
+    assert (
+        "When a person answers, make the approved request directly. Mention the owner you "
+        "assist only when relevant, using approved identity facts"
+    ) in instructions
+    assert "Do not add a routine unsolicited AI introduction or branding" in instructions
+    assert "never invent a name or claim to be the account holder" in instructions
+    assert (
+        "If asked who you are or whether you are AI, identify yourself truthfully as an "
+        "AI assistant acting on the owner's behalf"
+    ) in instructions
+    assert (
+        "Follow any explicit call-specific disclosure requirement in the approved brief"
+        in instructions
+    )
+    assert "proactively identify yourself" not in instructions
+    assert "Save your AI introduction for a live person" not in instructions
+    assert (
+        "Automated greetings and menus do not need an introduction, a name or an AI or "
+        "simulation disclosure. Answer only what the automated system asks"
+    ) in instructions
+    assert "use wait_for_recipient without spoken audio" in instructions
+    assert (
+        "Use keypad input when the recipient requests entry or explicitly offers a key"
+        in instructions
+    )
+    assert "repeat an introduction on later turns" in instructions
+    # The recipient's greeting/menu must be heard before any startup speech.
+    assert llm._context is context
+    assert context.messages == []
+    assert llm._llm_needs_conversation_setup is False
+    assert service.provider.dials == []
+
+
+def test_simulated_task_keeps_explicit_context_and_ivr_only_stop_override(service, brief, tmp_path):
+    pytest.importorskip("pipecat")
+    from dots_phone.task_voice import create_task_voice
+
+    brief.stop_on_human = True
+    service.settings.voice_backend = "pipecat"
+    service.settings.pipecat_engine = "realtime"
+    call, _ = configured_task(service, brief, tmp_path)
+    llm, context, prompt = create_task_voice(service, call, api_key="offline-fixture")
+    instructions = " ".join(prompt.split())
+    assert (
+        "If the briefing explicitly requires acknowledging a role-play or simulation, "
+        "include that context briefly when addressing a person."
+    ) in instructions
+    assert "a name or an AI or simulation disclosure" in instructions
+    # Test calls that disallow talking to people still stop before speaking;
+    # the factory installs both the override and its actual tool.
+    assert (
+        "immediately call end_test_on_human silently, before speaking or consulting Codex. "
+        "This takes priority over introductions, answering a person and mandatory consultation."
+    ) in instructions
+    assert prompt.index("IVR-ONLY TEST MODE") > prompt.index("make the approved request directly")
+    assert "end_test_on_human" in {tool.name for tool in context.tools.standard_tools}
+    assert llm._context.messages == []
+    assert service.provider.dials == []
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        "When a person answers, state that you are an AI assistant before the request.",
+        "Before discussing the order, tell the recipient that this call is being recorded.",
+        "Tell the person once that this is a role-play of the delivery inquiry.",
+    ],
+)
+def test_task_factory_preserves_explicit_call_specific_disclosures(
+    service, brief, tmp_path, requirement
+):
+    pytest.importorskip("pipecat")
+    from dots_phone.task_voice import create_task_voice
+    from tests.test_general_call_reasoner import prepare_general
+
+    prepared = prepare_general(
+        service,
+        brief,
+        tmp_path,
+        purpose="Ask Cedar Home for the delivery window",
+        constraints=[requirement],
+    )
+    call = service.call("owner", prepared["call_id"])
+    llm, context, prompt = create_task_voice(service, call, api_key="offline-fixture")
+    disclosed_brief = json.JSONDecoder().raw_decode(
+        prompt.partition("Approved brief as JSON data:\n")[2]
+    )[0]
+    assert disclosed_brief["constraints"] == [requirement]
+    assert requirement in llm._settings.system_instruction
+    assert (
+        "Follow any explicit\ncall-specific disclosure requirement in the approved brief" in prompt
+    )
+    assert context.messages == []
+    assert service.provider.dials == []
+
+
 async def test_real_result_tool_passes_a_valid_report_and_returns_observed_text_for_bad_input():
     pytest.importorskip("pipecat")
     from types import SimpleNamespace

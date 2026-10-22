@@ -51,7 +51,7 @@ def test_authenticated_import_reconciles_every_resource_digest(settings):
         catalog = request("skills/list")["result"]
         assert len(catalog["skills"]) == 1 and "nextCursor" not in catalog
         skill = catalog["skills"][0]
-        assert skill["frontmatter"]["metadata"]["version"] == "0.3.2"
+        assert skill["frontmatter"]["metadata"]["version"] == "0.3.3"
         assert request("skills/get", {"uri": skill["uri"]})["result"]["skill"] == skill
         assert {r["uri"] for r in skill["resources"]} == {
             SKILL_URI,
@@ -194,7 +194,7 @@ def test_workflow_fallback_is_authenticated_read_only_and_never_creates_calls(se
         assert not result.get("isError")
         workflow = result["structuredContent"]
         assert workflow == SkillCatalog().workflow()
-        assert workflow["version"] == "0.3.2"
+        assert workflow["version"] == "0.3.3"
         assert workflow["origin"] == "static_packaged_phone_skill"
         for supplied in [{"call_id": "a" * 32}, {"path": "/run/secrets/runtime"}]:
             body["params"]["arguments"] = supplied

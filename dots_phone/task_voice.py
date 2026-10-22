@@ -120,7 +120,6 @@ def create_task_voice(
             "is missing, ask what the owner must supply securely and report the inquiry unresolved. "
             "When the recipient corrects a value, use the corrected value and clarify any ambiguity. "
             "Listen silently to the whole automated menu before choosing an approved option. "
-            "Introduce yourself honestly as AI when a person answers, after navigating the menu. "
             "Acknowledge a person's hold request at most once; automated hold messages need no reply. "
             "Wait silently for the person to return; never announce that you are waiting or listening. "
             "Hold silence is not a result or a request to hang up. Retain the task and pending questions."

@@ -1,3 +1,31 @@
+# Dots Phone v0.3.3
+
+Experimental, self-hosted preview.
+
+## Changes since v0.3.2
+
+- Human-answer openings stay focused on the approved purpose and who the caller
+  assists, without a routine unsolicited AI introduction. Identity answers remain
+  truthful, and explicit call-specific disclosure instructions remain binding.
+  IVR navigation stays listen-first and answers only the menu or question asked.
+- Added regression coverage across general, task, autonomous and source-enabled
+  routes, including quiet IVR startup and explicitly requested disclosures.
+- Pin patched Pillow 13.0.0 through an explicit `uv` override in both supported
+  projects and remove the prior Pillow vulnerability exceptions. Pipecat remains
+  at 1.12.0; its upstream Pillow upper bound has not yet caught up. Use the
+  documented `uv` or Docker installation so the reviewed override is applied;
+  generic `pip` resolution does not apply it. See [dependency security](DEPENDENCY-SECURITY.md).
+- Added an independent-project notice and [usage responsibilities](USAGE.md),
+  covering provider costs, outcome review, calling/recording permissions and the
+  existing MIT warranty terms.
+- Updated the README and launch guide for the approved actual-call demo. The
+  fictional order and test recipient are disclosed; the demonstration does not
+  claim a Gmail or mid-call source lookup.
+
+Existing installations must rebuild the service and refresh their private plugin
+snapshot. Follow the [upgrade procedure](LOCAL-SETUP.md#upgrade-an-existing-installation)
+and preserve credentials, budgets, source permissions and filter choices.
+
 # Dots Phone v0.3.2
 
 Experimental, self-hosted preview. This candidate prepares the installation and

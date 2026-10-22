@@ -2,6 +2,7 @@
 
 Checked against official Product Hunt pages on October 20, 2026. Recheck the
 submission form before scheduling; published help pages differ in a few places.
+The video field was also checked in the signed-in form on October 22.
 
 | Item | Requirement used in this kit | Official source |
 | --- | --- | --- |
@@ -13,7 +14,7 @@ submission form before scheduling; published help pages differ in a few places.
 | Topics | Up to three relevant topics. Confirm the current names in the picker. | [Launch guide](https://help.producthunt.com/en/articles/17350772-launch-guide) |
 | Thumbnail | Square; recommended 240×240. Keep under 3 MB. | [Preparation guide](https://www.producthunt.com/launch/preparing-for-launch) |
 | Gallery | At least two images; recommended 1270×760. | [Posting help](https://help.producthunt.com/en/articles/479557-how-to-post-a-product) |
-| Video | Optional; full YouTube URL, accessible to visitors, not private. The website's HTML walkthrough is not a YouTube video. | [Posting help](https://help.producthunt.com/en/articles/479557-how-to-post-a-product) |
+| Video | Optional; the current form accepts a YouTube or Loom URL. Verify visitor playback before adding either. Keep the field empty for the self-hosted website demo. | Submission form observed October 22, 2026; [posting help](https://help.producthunt.com/en/articles/479557-how-to-post-a-product) |
 | Shoutouts | Up to three in the preparation guide. Select actual tools used; do not imply partnership or endorsement. | [Preparation guide](https://www.producthunt.com/launch/preparing-for-launch) |
 | Draft / scheduling | Save a draft or schedule a date within 30 days; scheduled posts remain editable through My Products. | [Scheduling help](https://help.producthunt.com/en/articles/2724119-how-to-schedule-a-post) |
 | Launch time | The recent launch guide specifies 12:01 AM Pacific. Older posting guidance calls this PST. Verify the actual timestamp before committing. | [Launch guide](https://help.producthunt.com/en/articles/17350772-launch-guide), [posting help](https://help.producthunt.com/en/articles/479557-how-to-post-a-product) |

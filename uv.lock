@@ -802,7 +802,7 @@ wheels = [
 
 [[package]]
 name = "dots-phone"
-version = "0.3.2"
+version = "0.3.3"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },

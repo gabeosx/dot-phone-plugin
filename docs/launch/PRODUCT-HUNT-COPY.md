@@ -42,8 +42,8 @@ https://github.com/gabeosx/dot-phone-plugin
 **Topics:** Open Source, Artificial Intelligence, Productivity. These are the
 three options selected in the saved draft.
 
-**Pricing:** Free is selected in Product Hunt's pricing field. The description
-and maker comment state that setup uses your OpenAI and Twilio accounts.
+**Pricing:** Free is the current selection in Product Hunt's pricing field. Keep
+the connected-provider cost notice in the maker comment and linked usage guide.
 
 **Status:** experimental preview, source available for self-hosting. If the form
 has a beta indicator, choose the option that reflects the release actually
@@ -59,10 +59,11 @@ entries available in Product Hunt and only credit tools used in the release.
 
 **Gallery:** upload PNGs 01–05 in numerical order from
 [`website/assets/launch/`](../../website/assets/launch/). Use `thumbnail.png` for
-the thumbnail. See [asset guide](ASSETS.md) for alt text. Leave the video field
-empty unless the owner publishes and verifies a YouTube version of the fictional
-walkthrough. The thumbnail and all five gallery images are uploaded to the saved
-draft. Verify their order before scheduling; no video has been uploaded.
+the thumbnail. See [asset guide](ASSETS.md) for alt text. The static gallery images
+are fictional illustrations, separate from the [actual recorded demo](https://phone.gabea.nyc/demo/).
+The current form accepts YouTube or Loom in its optional video field. Leave that
+field empty while the website hosts the recording. The thumbnail and all five
+gallery images are uploaded to the saved draft; verify their order before scheduling.
 
 ## Maker first comment
 
@@ -75,9 +76,13 @@ Some errands still end with “you’ll need to call us.” Dots Phone is for th
 
 Tell Dots what you need and what it may agree to. It gathers the details, saves a brief, and makes the call. If a question needs missing information, Codex can look it up through the apps you allow. Dots then reports the result and anything that still needs your attention.
 
-This first release is open source and self-hosted, with a setup guide Codex can help you follow. It uses your OpenAI and Twilio accounts. Email access is optional.
+Watch the 60-second demo: https://phone.gabea.nyc/demo/
 
-The site walks through a fictional delivery inquiry so you can see the flow. I’d love to hear which phone errands you’d want Dots to take off your list, and where the setup could be easier.
+It’s an actual recording using fictional order details and an owned automated test recipient. Dots reads the order confirmation before dialing, navigates the IVR and returns the reviewed answer.
+
+This is an open-source, self-hosted experimental preview for technical early adopters, with a setup guide Codex can help you follow. I’d love to hear what you’d want it to call about and where setup could be easier.
+
+Dots Phone is an independent, self-hosted project, not affiliated with or endorsed by OpenAI or Twilio. Results aren’t guaranteed; review important results. You’re responsible for connected-account charges, including when a call fails. Usage and responsibilities: https://phone.gabea.nyc/usage/
 ```
 
 ## Short answers for comments and support
@@ -92,15 +97,21 @@ the prerequisites.
 
 **Can I try it in my browser?**
 
-The site has a scripted fictional walkthrough. Making calls requires the local
-service, your own accounts and credentials, and the setup steps in the repository.
+You can watch the [recorded demo](https://phone.gabea.nyc/demo/) in your browser.
+Making calls requires the local service, your own accounts and credentials, and
+the setup steps in the repository.
 
 **How much does it cost?**
 
-Dots uses your OpenAI and Twilio accounts. OpenAI charges for API voice usage;
-Twilio charges for the phone number and calls. Your tunnel service may also
-charge. Codex reasoning uses your ChatGPT plan's allowance, which is separate
-from API billing. Call budgets use estimates rather than live billing.
+You are responsible for OpenAI voice usage, Twilio's number and phone charges,
+and any other connected service you use. Codex uses your account's allowance.
+Charges can accrue even when a call fails. Call budgets are estimates; check your provider billing. See
+[usage and responsibilities](../USAGE.md).
+
+**Is this an OpenAI or Twilio product?**
+
+Dots Phone is an independent, self-hosted project, not affiliated with or endorsed
+by OpenAI or Twilio.
 
 **Does this need my inbox?**
 
@@ -136,8 +147,9 @@ your intended setup before relying on it.
 
 **Does Dots disclose that it is an assistant?**
 
-The opening prompt tells Dots to introduce itself as an AI assistant calling on
-your behalf. You review the purpose and permitted disclosures in the call brief.
+The opening focuses on the approved purpose and calling on your behalf. Dots
+answers honestly about its identity if asked. Include any required calling or
+recording disclosures in the call instructions.
 
 **How do I report a bug?**
 
@@ -148,11 +160,15 @@ phone numbers, inbox contents, call audio and real-call transcripts out of publi
 issues. If a report needs private material, first agree on a private route with
 the maintainer.
 
-**Can you share a real call recording?**
+**Is the demo an actual recording?**
 
-The public gallery and walkthrough are authored fictional examples. The project
-keeps actual call contents, summaries and derived replay fixtures private. Public
-test results describe the harness and its limits.
+Yes. The [60-second demo](https://phone.gabea.nyc/demo/) records an actual Dots
+request and a telephone call to an owned automated test recipient, using fictional
+order details. The connected Page is read before dialing; the recording shows IVR
+navigation, keypad verification and the reviewed result. It contains no Gmail or
+mid-call source lookup. The static gallery images are separate fictional
+illustrations. Raw recordings and private call records stay outside the public
+repository.
 
 ## Announcement drafts
 
@@ -170,7 +186,9 @@ I’m launching Dots Phone: a self-hosted phone assistant for calls you put off.
 ```text
 I’m sharing Dots Phone on Product Hunt today. It’s an open-source, self-hosted experimental phone assistant: prepare a brief, make the call, and bring in Codex for missing information from permitted read tools.
 
-The site walks through a fictional delivery inquiry. Dots runs on your computer and uses your OpenAI and Twilio accounts.
+Watch a 60-second recording using fictional order details and an owned automated test recipient: https://phone.gabea.nyc/demo/
+
+Dots Phone is an independent, self-hosted project, not affiliated with or endorsed by OpenAI or Twilio. Results aren’t guaranteed; review important results. You’re responsible for connected-account charges, including when a call fails. Usage and responsibilities: https://phone.gabea.nyc/usage/
 
 If you work on voice agents or have a phone errand you would want help with, I’d value feedback on the setup and the design: PRODUCT_HUNT_LAUNCH_URL
 ```

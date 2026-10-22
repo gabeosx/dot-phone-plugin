@@ -204,4 +204,6 @@ def test_general_voice_honors_effort_with_native_audio_and_local_tools(
         "wait_for_recipient",
     }
     assert "Obtain account information only" not in prompt
-    assert "When a person answers, keep the opening to one sentence" in prompt
+    assert "When a person answers, make the approved request directly" in prompt
+    assert "Do not add a routine unsolicited AI introduction" in prompt
+    assert "If asked who you are or whether you are AI" in prompt

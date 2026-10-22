@@ -91,7 +91,8 @@ def keypad_instructions(*, account=False):
         "Do not speak a department name to a keypad-only menu. "
         "After the tool returns, stay silent until the clerk or next menu speaks. "
         "Carrier control preserves this voice session and all booking context. "
-        "Introduce yourself as AI to the clerk, after menu navigation."
+        "After menu navigation, make the approved request directly to the person. "
+        "Answer identity questions truthfully and follow explicit disclosure requirements in the approved brief."
     )
     if account:
         keypad_prompt += (

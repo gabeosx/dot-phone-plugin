@@ -79,8 +79,11 @@ async def test_general_opening_is_purpose_first_in_system_and_initial_context(au
     assert len(startup) == 1
     assert "When first speaking to a live person, ask the approved task question" in prompt
     for text in (prompt[prompt.index("When first speaking to a live person") :], startup[0]):
-        assert text.index("request first") < text.index("identify yourself as an AI assistant")
-        assert "in the same opening turn" in text
+        assert "request directly" in text
+        assert "Do not add a routine unsolicited AI introduction" in text
+        assert "disclosure requirements in the approved brief" in text
+        assert "then briefly identify yourself as an AI assistant" not in text
+    assert "If asked about your identity or whether you are AI, answer truthfully" in prompt
     assert OLD_STARTUP not in startup
     assert "without restarting the introduction" in prompt
     assert "Silence alone is not a reason to repeat" in prompt
@@ -103,13 +106,42 @@ async def test_general_opening_is_purpose_first_in_system_and_initial_context(au
     assert not [event for event in pipeline.model.sent if event["type"] == "response.cancel"]
 
 
+@pytest.fixture
+def explicit_disclosure(brief):
+    requirement = "Before discussing the request, tell the person that the call is being recorded."
+    brief.constraints.append(requirement)
+    return requirement
+
+
+async def test_general_wire_preserves_explicit_disclosure_requirement(
+    explicit_disclosure, audio_pipeline
+):
+    await eventually(lambda: user_wire(audio_pipeline))
+    prompt = session_wire(audio_pipeline)["instructions"]
+    assert explicit_disclosure in prompt
+    assert "Follow explicit call-specific disclosure requirements in the approved brief" in prompt
+    assert (
+        "follow explicit disclosure requirements in the approved brief"
+        in user_wire(audio_pipeline)[0]
+    )
+    assert "then briefly identify yourself as an AI assistant" not in prompt
+
+
 @pytest.mark.parametrize("service", ["hotel", "gmail", "mail"], indirect=True)
-async def test_registered_routes_keep_their_existing_opening(service, audio_pipeline):
+async def test_registered_routes_use_task_opening_without_unsolicited_ai_label(
+    service, audio_pipeline
+):
+    from dots_phone.pipecat_voice import REGISTERED_STARTUP
+
     await eventually(lambda: user_wire(audio_pipeline))
     assert (
         "When first speaking to a live person" not in session_wire(audio_pipeline)["instructions"]
     )
-    assert user_wire(audio_pipeline) == [OLD_STARTUP]
+    assert user_wire(audio_pipeline) == [REGISTERED_STARTUP]
+    assert "without a routine unsolicited AI introduction" in user_wire(audio_pipeline)[0]
+    assert "Answer identity questions truthfully" in user_wire(audio_pipeline)[0]
+    assert "follow explicit disclosure requirements" in user_wire(audio_pipeline)[0]
+    assert OLD_STARTUP not in user_wire(audio_pipeline)
 
 
 @pytest.mark.parametrize("service", ["keypad"], indirect=True)

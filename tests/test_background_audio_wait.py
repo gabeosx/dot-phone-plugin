@@ -24,13 +24,20 @@ def test_shared_audio_policy_distinguishes_background_from_unclear_recipient(bri
     assert "completed, clearly addressed but unintelligible request" in TASK_PROMPT
 
 
-def test_real_phone_roleplay_uses_one_acknowledgment_then_ordinary_questions(brief):
+@pytest.mark.parametrize("synthetic", [False, True])
+def test_explicit_roleplay_acknowledgment_keeps_ordinary_questions_natural(brief, synthetic):
+    requirement = "Tell the person once that this is a role-play of an airline booking."
     call = {"brief": brief.model_dump(mode="json")}
-    call["brief"].update(synthetic=False, purpose="Role-play an airline booking conversation")
-    prompt = task_instructions(call, live_sources=False)
-    assert '"synthetic": false' in prompt
-    assert "a role-play or simulation, including one over a real phone connection" in prompt
-    assert "acknowledge that context once in the opening" in prompt
+    call["brief"].update(
+        synthetic=synthetic,
+        purpose="Role-play an airline booking conversation",
+        constraints=[requirement],
+    )
+    prompt = " ".join(task_instructions(call, live_sources=False).split())
+    assert requirement in prompt
+    assert "If the briefing explicitly requires acknowledging a role-play or simulation" in prompt
+    assert "include that context briefly when addressing a person" in prompt
+    assert "Do not add a routine unsolicited AI introduction" in prompt
     assert "restrictions internal unless clarification is necessary" in prompt
     assert "ordinary questions, names, dates or prices fictional" in prompt
 

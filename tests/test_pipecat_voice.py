@@ -42,6 +42,10 @@ async def test_frozen_direct_policy_exposes_validated_local_keypad_controls(poli
         return
     assert {tool.__name__ for tool in tools[1:]} == {"press_phone_key", "enter_verification_fact"}
     assert "use enter_verification_fact" in prompt.lower()
+    assert "After menu navigation, make the approved request directly to the person" in prompt
+    assert "Answer identity questions truthfully" in prompt
+    assert "follow explicit disclosure requirements in the approved brief" in prompt
+    assert "Introduce yourself as AI" not in prompt
     params = SimpleNamespace()
     await tools[1](params, "2", "For balance inquiries, press 2.")
     provider.press_phone_key.assert_awaited_once_with(

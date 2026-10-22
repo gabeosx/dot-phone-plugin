@@ -1,5 +1,12 @@
 # Dots Phone landing page
 
+This directory retains the dependency-free, buildless illustrative landing-page source.
+The current hosted site at https://phone.gabea.nyc has the separately published
+[approved actual-call demo](https://phone.gabea.nyc/demo/) and
+[usage notice](https://phone.gabea.nyc/usage/). Recorded media and private hosting
+identity are not part of this repository. The film documented below is an
+independently authored fictional illustration, not that recording.
+
 A dependency-free, buildless landing page. `dist/` is the complete website and
 editable source: HTML, CSS, JavaScript, and a local SVG favicon. No build,
 package install, external fonts, analytics, or runtime network requests are used.

@@ -1,6 +1,6 @@
 [project]
 name = "dots-phone"
-version = "0.3.2"
+version = "0.3.3"
 description = "Private supervised Dots phone plugin"
 license = "MIT AND Apache-2.0"
 license-files = ["LICENSE", "NOTICE", "vendor/voice_evals/LICENSE", "vendor/agent-plugins-LICENSE"]

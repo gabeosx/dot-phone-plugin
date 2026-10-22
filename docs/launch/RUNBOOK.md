@@ -1,39 +1,50 @@
 # EOW launch runbook
 
 Target: **Friday, October 23, 2026**. All coverage times below are
-**America/New_York (EDT)**. This is a preparation plan, not an automation or a
-confirmation that a Product Hunt launch is scheduled.
+**America/New_York (EDT)**. The owner authorized completing the remaining launch
+work and scheduling Friday. The schedule remains unconfirmed until the actual
+Product Hunt UI shows the saved date, time and timezone.
 
 The owner is Gabe, Product Hunt [@gabea](https://www.producthunt.com/@gabea),
 unless another person explicitly accepts coverage. Any action
 marked **owner-only** requires the account holder to perform or authorize it.
-The kit does not publish, contact people, place a call, buy anything, or schedule
-the launch.
+This document records readiness and coverage; it does not itself perform those
+actions or confirm a saved schedule.
 
 ## Readiness record
 
 Keep operational evidence under ignored `artifacts/product-hunt-20261020/`.
-Record the following before scheduling. A blank row is pending, not passed.
+The record below was reconciled on October 22 against the final release,
+installation, published website and demo evidence. A pending row is not passed.
 Keep actual call data, secrets and account details out of this public document.
 
 | Gate | Required evidence | Status / evidence pointer |
 | --- | --- | --- |
-| Release identity | Public commit SHA, release tag if used, final CI run URL. | Pending |
-| Release checks | Exact-commit results from [public release](../PUBLIC-RELEASE.md), source/history credential audits, dependency/license checks, package/container checks. | Pending |
-| Fresh setup | Independent checkout following the published quickstart reaches dry-run/no-dial readiness; blockers documented with reproducible steps. | Pending |
-| Runtime boundary | Local service, gateway, reasoner heartbeat and installed phone tools verified without dialing; filter checked according to the setup guide. | Pending |
-| Public website | Final HTTPS URL resolves logged out; desktop/mobile, keyboard, reduced-motion and demo disclosure checked. | Pending |
-| Source path | Repo, quickstart, privacy, validation, license and reporting links work logged out. | Pending |
-| Listing fidelity | Preview label, provider costs, setup requirements and fictional demo disclosed; no unmeasured reliability or instant-setup promise. | Pending |
-| Product Hunt access — owner-only | Correct maker account and signed-in submission form available; save a draft and confirm actual co-makers next. | Verified Oct 20: draft saved as Gabe/@gabea at `https://www.producthunt.com/products/dots-phone?launch=dots-phone`; explicitly not scheduled. |
-| Gallery | Thumbnail and PNGs 01–05 preview correctly after upload, with no crops hiding disclosures. | All six uploaded and visible Oct 20. Check final gallery order before scheduling. |
-| Support — owner-only | A public reporting route exists and the owner can monitor it on launch day. | Pending |
-| Schedule — owner-only | Exact launch date and timezone/timestamp confirmed in Product Hunt's current UI. | Pending |
-| Go / no-go — owner-only | Owner approves this exact release and final Product Hunt draft. | Pending |
+| Release identity | Public commit SHA, release tag and final CI evidence. | **Passed.** [0.3.2 is published](https://github.com/gabeosx/dot-phone-plugin/releases/tag/v0.3.2) with audited archives and SHA256SUMS. Domain-source commit [`6459b9d`](https://github.com/gabeosx/dot-phone-plugin/commit/6459b9d4cb5dc7db40299d55ad3342836baa5f75) and merged public main [`8f07df7`](https://github.com/gabeosx/dot-phone-plugin/commit/8f07df796c8bc9fd165d1b497c11bcf03e05ce0f) have the tested tree; [domain PR checks](https://github.com/gabeosx/dot-phone-plugin/pull/4/checks) passed. |
+| Release checks | Exact-commit results from [public release](../PUBLIC-RELEASE.md), source/history credential audits, dependency/license checks, package/container checks. | **Passed.** [Final runtime CI](https://github.com/gabeosx/dot-phone-plugin/actions/runs/39527150844), host Python 1,788, Pipecat container 1,768, base container 900, JavaScript 94 and native filter 16 checks passed, with documented optional/platform skips. Source/history, credential and two-distribution audits passed; downloaded release archives match SHA256SUMS. Four dependency audits pass the [documented, expiring exception policy](../DEPENDENCY-SECURITY.md); nine Pillow advisories remain tracked in [issue 3](https://github.com/gabeosx/dot-phone-plugin/issues/3). |
+| Fresh setup | Independent checkout following the published quickstart reaches dry-run/no-dial readiness; blockers documented with reproducible steps. | **Passed within the documented installation boundary.** A new isolated Compose installation with invented credentials and empty state passed OAuth PKCE, authenticated tool discovery and workflow version 0.3.2, with zero calls. A fresh unconfigured checkout correctly reports missing registration and provider settings. Account eligibility remains a prerequisite; see [installation validation](../VALIDATION.md#installation). |
+| Runtime boundary | Local service, gateway, reasoner heartbeat and installed phone tools verified without dialing; filter checked according to the setup guide. | **Passed.** The upgraded 0.3.2 installation and connected tools agree. Final read-only setup checks report 26 OK, no failures, and optional local ASR explicitly not checked. Service/gateways, worker heartbeat, installed registration and native filter were verified; final active calls and pending reviews are zero. |
+| Public website | Final HTTPS URL resolves logged out; desktop/mobile, keyboard, reduced-motion and demo disclosure checked. | **Passed.** [phone.gabea.nyc](https://phone.gabea.nyc) serves site version 10 from source `b20c547e6bfcf7c3743cbb3fa9aa71ef7a929afe`. HTTPS, desktop/mobile layout, keyboard and reduced-motion checks passed. The [60-second demo](https://phone.gabea.nyc/demo/) plays, seeks and displays captions; its disclosure identifies owned numbers, a fictional order and condensed preparation/waits. |
+| Source path | Repo, quickstart, privacy, validation, license and reporting links work logged out. | **Passed.** [Repository](https://github.com/gabeosx/dot-phone-plugin), [quickstart](https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/QUICKSTART.md), [privacy](https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/PRIVACY.md), [validation](https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/VALIDATION.md), [license](https://github.com/gabeosx/dot-phone-plugin/blob/main/LICENSE) and [support](https://github.com/gabeosx/dot-phone-plugin/blob/main/docs/SUPPORT.md) links were checked logged out. |
+| Source and call evidence | Demonstrated source use, actual received audio, keypad receipts, reviewed outcome and closure agree. | **Passed for the scoped fictional checks.** Actual voice/Codex cases cover supplied and missing facts, wrong number, interruption, hold and telephone encoding. An authorized owned-number IVR trial independently verified actual received audio, all 17 keypad digits, the supported reviewed result, voice closure and exact restoration. The public demo illustrates existing Page context becoming the brief; it claims no mailbox or mid-call lookup. Private traces remain outside source and release archives. |
+| Listing fidelity | Preview label, provider costs, setup requirements and fictional demo disclosed; no unmeasured reliability or instant-setup promise. | **Passed.** Saved copy and gallery describe the experimental, self-hosted preview and own-account prerequisites/costs. Demo media retains complete IVR questions, keypad sequences and original-speed speech, with visible wait cuts; it establishes no general success rate. |
+| Human-answer disclosure | Production instructions and public claims agree on proactive AI identification when a person answers. | **Needs resolution.** The general voice prompt explicitly requires AI identification, while the autonomous task opening does not state it unconditionally. Reconcile the task instructions and disclosure claim before declaring the final launch review complete. Prompt wording alone cannot guarantee audible disclosure. |
+| Product Hunt access — owner-only | Correct maker account and signed-in submission form available; draft saved with actual maker attribution. | **Verified.** Draft saved as Gabe/@gabea at [the existing product draft](https://www.producthunt.com/products/dots-phone?launch=dots-phone). No additional maker or volunteer is assumed. |
+| Gallery | Thumbnail and PNGs 01–05 preview correctly after upload, with no crops hiding disclosures. | **Passed.** Thumbnail and all five gallery images uploaded, previewed and saved; final order 01–05 and the public product URL were verified after reload. |
+| Support — owner-only | A public reporting route exists and actual launch-day coverage is identified. | **Reporting route passed; coverage unconfirmed.** [GitHub Issues](https://github.com/gabeosx/dot-phone-plugin/issues), [support guidance](../SUPPORT.md) and [private vulnerability reporting](https://github.com/gabeosx/dot-phone-plugin/security/advisories/new) are available. The owner has not committed personal availability or named another person for the proposed coverage times. No response-time promise is made. |
+| Schedule — owner-only | Exact launch date and timezone/timestamp confirmed in Product Hunt's current UI. | **Pending actual UI confirmation.** Friday, October 23 is authorized. Record the saved timestamp and timezone after scheduling this existing draft. |
+| Go / no-go — owner-only | Owner authorizes the release and final Product Hunt draft; scheduling evidence is recorded. | **Authorized to finish and schedule Friday.** Resolve the disclosure consistency item, then confirm the final saved listing/date/time and coverage plan before treating launch operations as complete. |
 
-Use the validation boundary honestly. Passing fixtures and no-dial readiness can
-support an experimental preview; they cannot establish live-call audibility or
-a task completion rate. If a needed live test involves a real recipient, paid
+The published demo SHA-256 is
+`aeb1c7678cea3a37c4ee5843c4a7e2661c88951b829a839a1e57715c6b2ae38f`.
+Its 60-second export passed full decoding and audio correlation checks against
+the actual received recording. Only silence was added; no dialogue or keypad
+tones were substituted. The preparation animation is an illustration with
+condensed timing, rather than a source-tool execution trace.
+
+Use the validation boundary honestly. The scoped acoustic and owned-number
+checks establish observations from those scenarios; they do not establish a
+general task completion rate. If a further live test involves a real recipient, paid
 models or phone usage, prepare its scope and get the owner's specific authorization
 before running it. Keep its resulting evidence private under the project's
 privacy policy. Do not quietly turn a launch check into a phone call.
@@ -41,10 +52,9 @@ privacy policy. Do not quietly turn a launch check into a phone call.
 ## Before launch
 
 The owner supplied `@gabea`; the signed-in session was observed as Gabe and linked
-to that profile. A previous launch dated January 17, 2026 was visible. That is
-evidence of prior activity, not a verified account creation date or a guarantee
-of permission to schedule this product. The actual submission form is accessible;
-the draft is saved; the scheduler must still be checked in that authenticated session.
+to that profile. The actual submission form is accessible, the draft is saved,
+and the owner has authorized Friday scheduling. Confirm the saved scheduler
+state in that authenticated session.
 Creating a draft requires Product Hunt login. No login credentials belong in this
 kit or in chat.
 
@@ -57,7 +67,11 @@ kit or in chat.
 | Thursday, Oct 22, by 21:00 — owner-only | If gates pass, select Oct 23 in scheduler. Record the exact timestamp and reserve comment coverage. | Owner has reviewed the final draft and knows when it goes live. |
 | Thursday, Oct 22, after review | Freeze launch copy and assets. Limit changes to broken links, security/privacy problems or material inaccuracies; rerun affected checks. | Public version and draft agree. |
 
-If an account cannot post, the install is materially broken, the public source
+The listed release, setup, runtime, source, website, demo and gallery checks are
+complete; the newly identified human-answer disclosure consistency item remains
+open. The remaining operational items are the actual saved schedule/timezone and an
+honest coverage plan; the table below proposes work and does not assign personal
+availability. If an account cannot post, the install is materially broken, the public source
 audit fails, or the published site is stale, resolve it before scheduling. Moving
 the date is better than sending visitors into a known failure. A late optional
 YouTube video does not block launch: the static gallery and fictional website
@@ -72,13 +86,18 @@ uses **PST**. On the proposed date, 00:01 America/Los_Angeles is **03:01 EDT**;
 fixed UTC−08:00 would instead mean **04:01 EDT**. The form's confirmed timestamp
 is the operational source of truth. Have the owner available from **02:45 through
 04:15 EDT** if the UI does not make the offset unambiguous. Do not create another
-post when the first does not appear immediately.
+post when the first does not appear immediately. These are planning conversions;
+the saved UI date/time and offset are still pending in this record.
 
 The latest [scheduling help](https://help.producthunt.com/en/articles/2724119-how-to-schedule-a-post)
 supports drafts and scheduling within 30 days. Friday is the owner-confirmed
 project deadline, not a claim that a particular weekday improves ranking.
 
 ## Friday launch coverage
+
+These are proposed checkpoints for the owner or someone who explicitly accepts
+them. They are not confirmed staffing or a response-time commitment. If overnight
+coverage is unavailable, record that limit and check the listing when available.
 
 | Time (EDT) | Owner action |
 | --- | --- |

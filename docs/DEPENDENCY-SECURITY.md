@@ -6,6 +6,19 @@ use fixed Pillow 13.0.0 with no vulnerability exceptions. Audit results describe
 the advisory feeds at review time and do not promise that dependencies will
 remain free of future findings.
 
+## October 25 maintenance check
+
+The new local push gate found three advisories affecting the transitive
+`filelock==4.0.12` pin. Both lockfiles now use the upstream patched
+[filelock 4.2.1](https://github.com/tox-dev/filelock/releases/tag/4.2.1), resolving
+[GHSA-v4x8-3wr5-3wq8](https://github.com/advisories/GHSA-v4x8-3wr5-3wq8),
+[GHSA-9vhv-jxww-xfm5](https://github.com/advisories/GHSA-9vhv-jxww-xfm5) and
+[GHSA-567q-5qvw-pf92](https://github.com/advisories/GHSA-567q-5qvw-pf92).
+This is a targeted transitive update; no vulnerability exceptions were added.
+All four production/experimental PyPI and OSV audits passed with zero findings
+on October 25. Regressions guard the patched baseline in both supported projects. Release
+remains conditional on all local and final-commit GitHub checks passing.
+
 ## Certificate trust update
 
 Both lockfiles upgrade certifi from 2026.7.22 to 2026.10.19, resolving

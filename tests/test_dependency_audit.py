@@ -12,7 +12,7 @@ from scripts.dependency_audit import evaluate, main
 
 
 @pytest.mark.parametrize("project", [".", "experiments/pipecat"])
-def test_supported_voice_projects_lock_fixed_pillow_without_exceptions(project):
+def test_supported_voice_projects_lock_security_fixes_without_exceptions(project):
     root = Path(__file__).resolve().parents[1]
     if (
         project == "experiments/pipecat"
@@ -28,6 +28,8 @@ def test_supported_voice_projects_lock_fixed_pillow_without_exceptions(project):
     lock = tomllib.loads((root / project / "uv.lock").read_text())
     pillow = next(package for package in lock["package"] if package["name"] == "pillow")
     assert Version(pillow["version"]) >= Version("13.0.0")
+    filelock = next(package for package in lock["package"] if package["name"] == "filelock")
+    assert Version(filelock["version"]) >= Version("4.2.1")
     overrides = [Requirement(value) for value in config["tool"]["uv"]["override-dependencies"]]
     override = next(item for item in overrides if item.name == "pillow")
     assert pillow["version"] in override.specifier

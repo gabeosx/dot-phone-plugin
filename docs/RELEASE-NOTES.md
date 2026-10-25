@@ -1,3 +1,11 @@
+# Unreleased
+
+- Require the full shared CI suite locally before every push; install the
+  repository pre-push hook and see [maintenance](DEPENDENCY-MAINTENANCE.md).
+- Add weekly dependency discovery and validation-gated maintenance releases.
+- Update transitive filelock to 4.2.1 in both lockfiles to resolve three security
+  advisories; see [dependency security](DEPENDENCY-SECURITY.md).
+
 # Dots Phone v0.3.3
 
 Experimental, self-hosted preview.

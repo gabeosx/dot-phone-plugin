@@ -20,7 +20,10 @@ each clone/worktree; Git does not install hooks automatically after cloning.
 
 The full suite requires uv, Node, Docker Compose, network access for dependency
 downloads and all four live advisory audits, and Linux amd64 container support.
-Reports stay in ignored `artifacts/`. These checks use fictional fixtures and
+Commit changes before running the suite. It validates the exact commit and its
+complete ancestry in an isolated checkout, leaving unrelated private backup refs
+and ignored state out of the candidate. Reports stay in ignored
+`artifacts/local-ci/<commit>-<run>/`. These checks use fictional fixtures and
 mocks. They do not dial, query an inbox or need provider credentials.
 Some local socket checks need loopback access.
 See [validation](docs/VALIDATION.md) for optional native checks and known limits.

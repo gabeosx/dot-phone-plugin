@@ -36,11 +36,15 @@ compute, not Actions minutes.
 
 ## Validate before pushing
 
-Install the hook with `bash scripts/install-hooks.sh`. Run `bash scripts/ci.sh`:
-this is the complete CI suite including all four live advisory audits, credential
+Install the hook with `bash scripts/install-hooks.sh`. Commit candidate changes
+before running `bash scripts/ci.sh`: this is the complete CI suite including all
+four live advisory audits, credential
 and source/history audits, build, JavaScript checks and both Linux amd64 container
 suites. It uses the same pinned uv as Actions. Docker, network/advisory access,
-Node, and uv are prerequisites. Logs and reports stay under ignored `artifacts/`.
+Node, and uv are prerequisites. The runner fetches the candidate commit and its
+complete ancestry into a temporary checkout, without unrelated private backup
+refs or ignored local state. Every existing history/security check runs there.
+Reports are copied to ignored `artifacts/local-ci/<commit>-<run>/` before cleanup.
 Docker runs use separate Compose project names and do not start phone services.
 
 Review upstream changes for behavioral risk. Voice SDK, transport, codec, model

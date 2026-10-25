@@ -80,7 +80,11 @@ bash scripts/ci.sh
 
 The shared script runs the complete GitHub CI suite, including all four live
 dependency audits and both Linux amd64 Docker suites. It needs network access,
-Docker/Compose, uv and Node. A failed or unavailable check blocks pushing; do not
+Docker/Compose, uv and Node. Commit source first: the runner creates an isolated
+checkout with that commit's complete ancestry and executes every history check
+there. Unrelated private backup refs and ignored state are not copied. Reports
+are retained in `artifacts/local-ci/<commit>-<run>/`.
+A failed or unavailable check blocks pushing; do not
 bypass the hook. Local checks validate the clean commit being pushed and rerun if
 source changes. These commands do not authorize outbound calls or paid model
 evaluations. See [weekly maintenance](DEPENDENCY-MAINTENANCE.md) for release gates.

@@ -74,12 +74,13 @@ fixtures outside the repository and distribution archives. See [privacy](PRIVACY
 ## Reproduce offline checks
 
 ```sh
-uv sync --frozen --extra pipecat --python 3.13
-uv run --no-sync python -m dots_phone.checks offline
-uv run --no-sync python scripts/secret_scan.py --history
-uv run --no-sync python scripts/public_release_audit.py --history --report artifacts/public-source-audit.json
-node --test experiments/pipecat/tests/*.test.mjs experiments/pipecat/test_automatic_call_worker.mjs
-uv build
+bash scripts/install-hooks.sh
+bash scripts/ci.sh
 ```
 
-These commands do not authorize outbound calls or paid model evaluations.
+The shared script runs the complete GitHub CI suite, including all four live
+dependency audits and both Linux amd64 Docker suites. It needs network access,
+Docker/Compose, uv and Node. A failed or unavailable check blocks pushing; do not
+bypass the hook. Local checks validate the clean commit being pushed and rerun if
+source changes. These commands do not authorize outbound calls or paid model
+evaluations. See [weekly maintenance](DEPENDENCY-MAINTENANCE.md) for release gates.

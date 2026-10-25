@@ -9,21 +9,7 @@ jobs:
         with: {fetch-depth: 0}
       - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
         with: {version: "0.10.6"}
-      - run: uv sync --frozen --extra pipecat --python 3.13
-      - run: uv run --no-sync python -m dots_phone.checks offline
-      - run: uv run --no-sync python scripts/secret_scan.py --history
-      - run: uv run --no-sync python scripts/public_release_audit.py --history --report artifacts/public-source-audit.json
-      - run: node --test experiments/pipecat/tests/*.test.mjs experiments/pipecat/test_automatic_call_worker.mjs
-      - run: uv export --frozen --no-dev --all-extras --no-emit-project --format requirements-txt --output-file artifacts/dependency-requirements.txt
-      - run: uv run --no-sync python scripts/dependency_audit.py --requirements artifacts/dependency-requirements.txt --report artifacts/dependency-audit.json
-      - run: uv run --no-sync python scripts/dependency_audit.py --vulnerability-service osv --requirements artifacts/dependency-requirements.txt --report artifacts/dependency-audit-osv.json
-      - run: uv export --project experiments/pipecat --frozen --no-dev --all-extras --no-emit-project --format requirements-txt --output-file artifacts/experimental-dependency-requirements.txt
-      - run: uv run --no-sync python scripts/dependency_audit.py --requirements artifacts/experimental-dependency-requirements.txt --report artifacts/experimental-dependency-audit.json
-      - run: uv run --no-sync python scripts/dependency_audit.py --vulnerability-service osv --requirements artifacts/experimental-dependency-requirements.txt --report artifacts/experimental-dependency-audit-osv.json
-      - run: docker run --rm --network none --user "$(id -u):$(id -g)" -v "$PWD:/repo:ro" -v "$PWD/artifacts:/report" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git /repo --redact --report-format json --report-path /report/gitleaks.json --no-banner
-      - run: uv build
-      - run: docker compose --profile test run --build --rm --user "$(id -u):$(id -g)" test-runner
-      - run: docker compose -f experiments/pipecat/compose.phone.yaml run --build --rm --no-deps -T tests
+      - run: bash scripts/ci.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with: {name: acceptance, path: artifacts/}

@@ -57,6 +57,37 @@ async def test_sdk_callback_cannot_replay_a_settled_tool_result(service, brief, 
         await close_fixture(llm, lookup)
 
 
+async def test_sdk_intermediate_result_does_not_swallow_the_final_result(service, brief):
+    from pipecat.frames.frames import FunctionCallResultFrame, FunctionCallResultProperties
+
+    _, llm, params, lookup, _ = await pending_report(service, brief)
+    llm._open_function_calls.add(params.tool_call_id)
+    intermediate = FunctionCallResultFrame(
+        function_name="finish_call",
+        tool_call_id=params.tool_call_id,
+        arguments={},
+        result={"progress": "pending"},
+        properties=FunctionCallResultProperties(is_final=False, run_llm=False),
+    )
+    final = FunctionCallResultFrame(
+        function_name="finish_call",
+        tool_call_id=params.tool_call_id,
+        arguments={},
+        result={"result_recorded": False},
+    )
+    try:
+        await llm._handle_function_call_result(intermediate)
+        await llm._handle_function_call_result(final)
+        await llm._handle_function_call_result(final)
+        wire = [json.loads(call.args[0]) for call in llm._websocket.send.await_args_list]
+        assert len(wire) == 2
+        assert wire[0]["item"]["type"] == "message"
+        assert wire[1]["item"]["type"] == "function_call_output"
+        assert wire[1]["item"]["call_id"] == params.tool_call_id
+    finally:
+        await close_fixture(llm, lookup)
+
+
 async def acknowledge(llm):
     await llm.observe(
         {

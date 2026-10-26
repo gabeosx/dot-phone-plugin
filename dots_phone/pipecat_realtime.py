@@ -340,7 +340,12 @@ class SupervisedRealtimeService(OpenAIRealtimeLLMService):
         # Pipecat 1.14 forwards callbacks to Realtime immediately. Controller
         # delivery already wrote these results to the wire; keep the callback's
         # local context bookkeeping without replaying it as a new message.
-        if frame.tool_call_id in self._completed_tool_calls:
+        # The SDK also marks intermediate updates as seen. An open call must
+        # still accept its final result; only a closed, delivered call is done.
+        if (
+            frame.tool_call_id in self._completed_tool_calls
+            and frame.tool_call_id not in self._open_function_calls
+        ):
             return
         await super()._handle_function_call_result(frame)
 

@@ -13,7 +13,7 @@ from dots_phone.call_reasoner import (
 
 
 @pytest.mark.parametrize("policy", ["direct_with_codex", "always_consult"])
-def test_both_voice_policies_receive_silent_completion_instruction_and_finish_tool(
+async def test_both_voice_policies_receive_silent_completion_instruction_and_finish_tool(
     service, brief, tmp_path, policy
 ):
     pytest.importorskip("pipecat")
@@ -32,7 +32,7 @@ def test_both_voice_policies_receive_silent_completion_instruction_and_finish_to
     assert "semantic review run AFTER hangup" in VOICE_COMPLETION_PROMPT
     assert "Never change a factual claim to fit" in VOICE_COMPLETION_PROMPT
     assert "BEFORE finishing" in VOICE_COMPLETION_PROMPT
-    tools = llm.get_llm_adapter().get_llm_invocation_params(context)["tools"]
+    tools = (await llm.get_llm_adapter().get_llm_invocation_params(context))["tools"]
     allowed = reasoning_turn_policy(tools, response_policy=policy, consulted=True)
     assert allowed["tool_choice"] == "auto"
     assert "finish_call" in {tool["name"] for tool in allowed["tools"]}

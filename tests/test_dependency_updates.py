@@ -21,7 +21,7 @@ def test_no_stable_release_is_an_error():
         stable_release(releases("2.0rc1"))
 
 
-def test_scan_covers_both_pipecat_pins_build_groups_extras_and_overrides():
+def test_scan_covers_both_pipecat_pins_build_groups_extras_and_constraints():
     root = Path(__file__).resolve().parents[1]
     if not (root / "experiments/pipecat/pyproject.toml").exists():
         pytest.skip("Experimental metadata is excluded from the runtime Docker images")
@@ -31,7 +31,7 @@ def test_scan_covers_both_pipecat_pins_build_groups_extras_and_overrides():
         "experiments/pipecat/pyproject.toml",
     }
     assert pins["hatchling"][0]["group"] == "build"
-    assert any(pin["group"] == "overrides" for pin in pins["pillow"])
+    assert any(pin["group"] == "constraints" for pin in pins["pillow"])
     assert any(pin["group"] == "group:dev" for pin in pins["pytest"])
     assert any(pin["group"] == "extra:bws" for pin in pins["bitwarden-sdk"])
     report = scan(root, lambda name: releases("999.0"))

@@ -30,9 +30,13 @@ def test_supported_voice_projects_lock_security_fixes_without_exceptions(project
     assert Version(pillow["version"]) >= Version("13.0.0")
     filelock = next(package for package in lock["package"] if package["name"] == "filelock")
     assert Version(filelock["version"]) >= Version("4.2.1")
-    overrides = [Requirement(value) for value in config["tool"]["uv"]["override-dependencies"]]
-    override = next(item for item in overrides if item.name == "pillow")
-    assert pillow["version"] in override.specifier
+    constraints = [Requirement(value) for value in config["tool"]["uv"]["constraint-dependencies"]]
+    constraint = next(item for item in constraints if item.name == "pillow")
+    assert pillow["version"] in constraint.specifier
+    overrides = config["tool"]["uv"].get("override-dependencies", [])
+    assert not any(Requirement(value).name == "pillow" for value in overrides)
+    pipecat = next(package for package in lock["package"] if package["name"] == "pipecat-ai")
+    assert Version(pipecat["version"]) >= Version("1.14.0")
     assert json.loads((root / "scripts/dependency_exceptions.json").read_text()) == []
 
 

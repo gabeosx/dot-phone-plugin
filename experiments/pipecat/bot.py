@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 
 from pipecat.evals.serializer import EvalSerializer
 from pipecat.evals.transport import EvalTransport, EvalTransportParams
-from pipecat.frames.frames import EndFrame, LLMRunFrame
+from pipecat.frames.frames import CancelWorkerFrame, EndFrame, EndWorkerFrame, LLMRunFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.worker import PipelineParams, PipelineWorker, ProcessorUnusablePolicy
 from pipecat.processors.aggregators.llm_context import LLMContext
@@ -77,7 +77,7 @@ class Evidence:
 class MeasuredLiveService(OpenAILiveLLMService):
     """Pinned adapter hook: retain final closure/usage rather than infer it from disconnect.
 
-    Pipecat 1.12 has no on_session_closed event and only logs Live seconds.
+    The SDK has no on_session_closed event and only logs Live seconds.
     Keep this hook small and cover it with protocol tests before upgrading.
     """
 
@@ -104,9 +104,7 @@ class MeasuredLiveService(OpenAILiveLLMService):
                 self.evidence.mark("input_suppressed_at_close")
                 return
             self.next_input_at += len(pcm) / 48000
-        self.evidence.mark(
-            "client_event", event_type=type(event).__name__, event_id=event.event_id
-        )
+        self.evidence.mark("client_event", event_type=type(event).__name__, event_id=event.event_id)
         if isinstance(event, events.ResponseCreateEvent):
             self.pending_continuations += 1
             self.backend_changed.set()
@@ -120,7 +118,9 @@ class MeasuredLiveService(OpenAILiveLLMService):
             self.evidence.mark("input_audio", **pcm_fields(pcm), **fields)
         await super().send_client_event(event)
         if isinstance(event, (events.ResponseItemCreateEvent, events.ResponseCreateEvent)):
-            self.evidence.mark("backend_command_sent", event_type=event.type, event_id=event.event_id)
+            self.evidence.mark(
+                "backend_command_sent", event_type=event.type, event_id=event.event_id
+            )
 
     async def _send_user_audio(self, frame):
         # RTVI can announce readiness before the model session is started.
@@ -204,12 +204,38 @@ class MeasuredLiveService(OpenAILiveLLMService):
         self.backend_changed.set()
 
 
-def build_bot(*, key, base_url, evidence, port, backend_model="gpt-5.6-terra"):
+class DrainingEvalSerializer(EvalSerializer):
+    """Translate the harness's automatic cancel into a drained normal end.
+
+    Since Pipecat 1.13 the harness always sends eval-cancel, regardless of its
+    deprecated stop_bot flag. A normal evaluation must still acknowledge final
+    provider usage. Explicit cancellation fixtures retain immediate cancellation.
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.graceful_eval_shutdown = True
+        self.drain_before_end = None
+
+    async def deserialize(self, data):
+        frame = await super().deserialize(data)
+        if isinstance(frame, CancelWorkerFrame) and self.graceful_eval_shutdown:
+            if self.drain_before_end is not None:
+                await self.drain_before_end()
+            return EndWorkerFrame()
+        return frame
+
+
+def build_bot(
+    *, key, base_url, evidence, port, backend_model="gpt-5.6-terra", graceful_eval_shutdown=True
+):
+    serializer = DrainingEvalSerializer()
+    serializer.graceful_eval_shutdown = graceful_eval_shutdown
     transport = EvalTransport(
         host="127.0.0.1",
         port=port,
         params=EvalTransportParams(
-            audio_in_enabled=True, audio_out_enabled=True, serializer=EvalSerializer()
+            audio_in_enabled=True, audio_out_enabled=True, serializer=serializer
         ),
     )
     llm = MeasuredLiveService(
@@ -226,6 +252,8 @@ def build_bot(*, key, base_url, evidence, port, backend_model="gpt-5.6-terra"):
             ),
         ),
     )
+    if graceful_eval_shutdown:
+        serializer.drain_before_end = llm.drain_delegations
 
     async def lookup_hours(params: FunctionCallParams, place: str):
         """Look up fictional closing hours.

@@ -25,6 +25,7 @@ def pinned_dependencies(root: Path) -> dict[str, list[dict]]:
             "runtime": project["dependencies"],
             "build": config.get("build-system", {}).get("requires", []),
             "overrides": config.get("tool", {}).get("uv", {}).get("override-dependencies", []),
+            "constraints": config.get("tool", {}).get("uv", {}).get("constraint-dependencies", []),
             **{f"extra:{k}": v for k, v in project.get("optional-dependencies", {}).items()},
             **{f"group:{k}": v for k, v in config.get("dependency-groups", {}).items()},
         }

@@ -29,7 +29,7 @@ without provider credentials, Docker services, tunnels or a mailbox connection.
 | Node.js | Use the current LTS release. The project does not declare a minimum Node version. | [Node.js downloads](https://nodejs.org/en/download) |
 | Codex CLI | Use the current CLI and sign in with **ChatGPT**. API-key sign-in does not support this worker. | [Install Codex](https://developers.openai.com/codex/cli/) · [Sign-in options](https://developers.openai.com/codex/auth/) |
 
-The containers pin Python 3.13.15 and uv 0.10.6. There is no separate database to
+The containers pin Python 3.13.17 and uv 0.13.5. There is no separate database to
 install; the service uses local SQLite.
 
 ## Get your accounts and credentials

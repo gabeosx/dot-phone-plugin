@@ -11,10 +11,10 @@ docker compose version >/dev/null
 mkdir -p artifacts
 
 # Match setup-uv in CI even when the developer has a newer uv installed.
-if [[ "$(uv --version)" == "uv 0.10.6"* ]]; then
+if [[ "$(uv --version)" == "uv 0.13.5"* ]]; then
   UV=(uv)
 else
-  UV=(uvx --from uv==0.10.6 uv)
+  UV=(uvx --from uv==0.13.5 uv)
 fi
 # GitHub's ubuntu-latest runner is x86_64. Exercise the same image platform on Macs.
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
@@ -30,7 +30,7 @@ trap cleanup EXIT
 # absolute path inside the scanner so its .git pointer remains usable.
 git_common="$(git rev-parse --path-format=absolute --git-common-dir)"
 
-"${UV[@]}" sync --frozen --extra pipecat --python 3.13
+"${UV[@]}" sync --frozen --extra pipecat --python 3.13.17
 "${UV[@]}" run --no-sync python -m dots_phone.checks offline
 "${UV[@]}" run --no-sync python scripts/secret_scan.py --history
 "${UV[@]}" run --no-sync python scripts/public_release_audit.py --history --report artifacts/public-source-audit.json

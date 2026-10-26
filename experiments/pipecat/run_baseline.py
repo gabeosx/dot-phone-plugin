@@ -7,6 +7,7 @@ import json
 import socket
 import tempfile
 import wave
+from importlib.metadata import version
 from pathlib import Path
 
 import numpy as np
@@ -41,12 +42,18 @@ def fixture_scenario(directory):
 
 async def conversation(scenario, *, key, base_url, evidence, cancel=False, timeout=30):
     bot_port = unused_port()
-    run_bot, stop_bot, _ = build_bot(key=key, base_url=base_url, evidence=evidence, port=bot_port)
+    run_bot, stop_bot, _ = build_bot(
+        key=key,
+        base_url=base_url,
+        evidence=evidence,
+        port=bot_port,
+        graceful_eval_shutdown=not cancel,
+    )
     task = asyncio.create_task(run_bot())
     session = EvalSession.from_scenario(
         scenario,
         f"ws://127.0.0.1:{bot_port}",
-        params=EvalSessionParams(default_timeout_ms=5000, stop_bot=cancel),
+        params=EvalSessionParams(default_timeout_ms=5000),
     )
 
     @session.event_handler("on_progress")
@@ -101,7 +108,7 @@ async def run(
     report = evidence.report()
     report.update(
         mode="offline_protocol_fixture",
-        pipecat_version="1.12.0",
+        pipecat_version=version("pipecat-ai"),
         eval_passed=result.passed,
         eval_failures=[str(f) for f in result.failures],
         fixture_interrupted_while_speaking=fake.interrupted,

@@ -15,7 +15,7 @@ compute, not Actions minutes.
 2. Run `uv sync --frozen --extra pipecat --python 3.13`, then
    `uv run --no-sync python scripts/check_dependency_updates.py`. Its ignored
    `artifacts/dependency-updates.json` covers exact runtime, optional, development,
-   build and override pins in both Python projects. It excludes prereleases and
+   build, constraint and override pins in both Python projects. It excludes prereleases and
    fully yanked releases and fails if any package lookup is incomplete.
 3. Also inspect transitive updates with `uv tree --outdated` for both projects,
    pinned images in all Dockerfiles, GitHub Action SHAs, the tunnel-client
@@ -46,6 +46,8 @@ complete ancestry into a temporary checkout, without unrelated private backup
 refs or ignored local state. Every existing history/security check runs there.
 Reports are copied to ignored `artifacts/local-ci/<commit>-<run>/` before cleanup.
 Docker runs use separate Compose project names and do not start phone services.
+GitHub runs the same suite for pull requests and pushes to main, avoiding a
+second identical feature-branch push run. The local hook still gates every push.
 
 Review upstream changes for behavioral risk. Voice SDK, transport, codec, model
 and audio processing upgrades need the applicable synthetic voice/installation

@@ -6,6 +6,29 @@ use fixed Pillow 13.0.0 with no vulnerability exceptions. Audit results describe
 the advisory feeds at review time and do not promise that dependencies will
 remain free of future findings.
 
+## October 26 candidate review
+
+The 0.3.4 candidate moves both projects to
+[Pipecat 1.14.0](https://github.com/pipecat-ai/pipecat/releases/tag/v1.14.0).
+Its declared `Pillow>=11.1.0,<14` range supports the existing fixed Pillow 13.0.0.
+Both projects now use an exact uv constraint instead of overriding Pipecat's
+requirements. Regression checks still reject vulnerable Pillow/filelock locks,
+require the Pillow constraint, and forbid restoring the override. Historical
+sections below describe the earlier 1.12 installation boundary.
+
+The candidate also fixes the build tool's own trust store, beyond the previously
+updated Python certifi package. [GHSA-hq85-5cpj-mr62](https://github.com/astral-sh/uv/security/advisories/GHSA-hq85-5cpj-mr62)
+affects uv versions below 0.13.4. CI and all uv container stages pin 0.13.5, and
+the Python stages pin 3.13.17. Their registry digests were verified before editing;
+native CI requests the same Python patch version. Hosts should also use uv
+0.13.4 or newer; a project image pin does not upgrade a host's installed uv.
+
+The tunnel binary moves from 0.0.16 to the official 0.0.18 release. The downloader
+checks the release's pinned SHA256SUMS manifest digest before accepting any
+platform archive, retains license/SPDX files, and does not change credentials.
+All four frozen-requirements audits initially passed with zero findings and zero
+exceptions. This does not replace final-commit CI or required behavior validation.
+
 ## October 25 maintenance check
 
 The new local push gate found three advisories affecting the transitive

@@ -22,11 +22,11 @@ dependencies = [
 ]
 [project.optional-dependencies]
 bws = ["bitwarden-sdk==2.1.0"]
-pipecat = ["pipecat-ai[websocket]==1.14.0"]
+pipecat = ["pipecat-ai[websocket]==1.15.0"]
 deepfilter = ["numpy==2.5.3", "soxr==1.0.0"]
 audio-review = ["faster-whisper==1.2.1"]
 [tool.uv]
-# Pipecat 1.14 supports Pillow 13. Keep the security-reviewed exact pin without
+# Pipecat 1.15 supports Pillow 13. Keep the security-reviewed exact pin without
 # overriding upstream requirements; see docs/DEPENDENCY-SECURITY.md.
 constraint-dependencies = ["pillow==13.0.0"]
 [dependency-groups]

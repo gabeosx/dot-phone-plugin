@@ -22,6 +22,11 @@ compute, not Actions minutes.
    version/checksum and vendored upstream revisions. Check official release notes,
    migration guidance and security advisories. A failed lookup is not evidence
    that dependencies are current. Report findings without compatible updates.
+   Review a tunnel release's checksum-verified vulnerability report and VEX when
+   available. Untriaged findings remain release blockers; Python-only advisory
+   audits and successful binary downloads do not establish that Go dependencies
+   are secure. Retain findings until a patched binary or documented security
+   validation clears them.
 4. Prioritize Pipecat and security fixes. Keep the root `pipecat` extra and the
    experimental project's Pipecat pin aligned. Review the Pillow override against
    the new Pipecat metadata; remove it only when a secure supported resolution and

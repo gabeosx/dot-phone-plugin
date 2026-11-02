@@ -4,7 +4,7 @@ version = "0.1.0"
 license = "MIT"
 requires-python = ">=3.12,<3.14"
 dependencies = [
-  "pipecat-ai==1.14.0",
+  "pipecat-ai==1.15.0",
   "mcp==2.3.0",
   "uvicorn==0.54.0",
 ]

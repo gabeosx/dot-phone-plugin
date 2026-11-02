@@ -1,6 +1,6 @@
 # Unreleased — v0.3.4 candidate
 
-- Upgrade both supported projects from Pipecat 1.12.0 to 1.14.0. Await the new
+- Upgrade both supported projects from Pipecat 1.12.0 to 1.15.0. Await the new
   async adapter API and prevent SDK callback frames from replaying a tool result
   the controller already delivered. Keep the existing exactly-once source, silent
   wait, report feedback and signed-carrier regressions.
@@ -9,18 +9,25 @@
   reports now record the installed Pipecat version instead of a stale constant.
 - Pipecat now supports Pillow 13. Replace its upstream requirement override with
   the same exact secure Pillow constraint in both frozen projects.
-- Pin uv 0.13.5 and Python 3.13.17 containers by verified digests, including the
-  corrected certificate stores. Update CI's uv pin and managed Python together.
-- Update the connection binary to tunnel-client 0.0.18, checking the pinned
+- Pin uv 0.13.6 and Python 3.13.18 containers by verified digests, including the
+  corrected certificate stores and Python's compromised-intermediate-key block.
+  Update CI's uv pin and managed Python together.
+- Update the connection binary to tunnel-client 0.0.19, checking the pinned
   checksum manifest before checking each platform archive. Existing static-key
   deployments retain their authentication configuration.
-- Refresh immutable GitHub Action pins to checkout 7.0.1, setup-uv 10.3.2 and
+- Refresh immutable GitHub Action pins to checkout 7.0.1, setup-uv 10.3.3 and
   upload-artifact 7.0.2 for the hosted Ubuntu runner.
+- Record the vendored voice harness's official upstream revision and retained
+  Dots Phone finalization-timeout adaptation in the third-party notice.
 - Run GitHub CI for pull requests and main pushes, avoiding duplicate feature
   branch push and pull-request runs. Every push still uses the full local gate.
 - This candidate is not a published release. Applicable model-backed acoustic and
   installation validation must pass before publication. No provider calls or
   production changes are authorized by the scheduled maintenance job.
+- The tunnel-client 0.0.19 security report has unresolved dependency findings,
+  including high-severity matches in both Linux client binaries. Merge and release
+  remain blocked pending a patched binary or documented security validation; see
+  [dependency security](DEPENDENCY-SECURITY.md#november-2-candidate-review).
 
 - Require the full shared CI suite locally before every push; install the
   repository pre-push hook and see [maintenance](DEPENDENCY-MAINTENANCE.md).

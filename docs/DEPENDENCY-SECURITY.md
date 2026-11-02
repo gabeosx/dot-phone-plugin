@@ -6,6 +6,48 @@ use fixed Pillow 13.0.0 with no vulnerability exceptions. Audit results describe
 the advisory feeds at review time and do not promise that dependencies will
 remain free of future findings.
 
+## November 2 candidate review
+
+Both frozen projects now pin [Pipecat 1.15.0](https://github.com/pipecat-ai/pipecat/releases/tag/v1.15.0),
+which still declares support for the existing exact Pillow 13.0.0 constraint.
+The targeted lock update changes only Pipecat. Python requirements remain
+compatible with the application's Python 3.12 minimum and the experimental
+project's Python 3.12–3.13 range.
+
+Pipecat's new default requires all configured turn-stop strategies to agree.
+The application's manual Realtime path uses the SDK's single external stop
+strategy, not a combined strategy list. Keep the existing committed-turn,
+interruption, signed-carrier and exactly-once tool-result checks; optional alpha
+expression/perception features and new provider defaults are not enabled by this
+upgrade. Applicable model-backed acoustic validation remains a release gate.
+
+All Python image stages and the managed native CI interpreter now pin
+[Python 3.13.18](https://www.python.org/downloads/release/python-31318/).
+This expedited security release blocks compromised eMudhra intermediate keys in
+the ssl module and fixes Expat and tarfile issues. uv 0.13.6 supplies the new
+managed interpreter; registry digests are verified and CI uses the same uv pin.
+The certificate-store fix from uv 0.13.4 remains required. The host uv was already
+updated to 0.13.5 before this maintenance run; no host software was changed here.
+
+The connection image now pins the official tunnel-client 0.0.19 binary and its
+verified checksum manifest. The application uses HTTP MCP; the release's new
+stdio-child recovery policy is not configured here. No tunnel is started during
+offline build/CLI checks, and credentials and deployment configuration are unchanged.
+
+**Release blocker:** the checksum-verified upstream
+[vulnerability report](https://github.com/openai/tunnel-client/releases/download/v0.0.19/tunnel-client-v0.0.19-vulnerability-report.json)
+contains 12 dependency matches for each Linux client binary, including two high
+severity matches: `github.com/klauspost/compress` 1.18.0
+([GHSA-259r-337f-4rfw](https://github.com/advisories/GHSA-259r-337f-4rfw), patched in 1.18.7)
+and `github.com/go-jose/go-jose/v4` 4.1.4
+([GHSA-mgcc-cww5-fp2q](https://github.com/advisories/GHSA-mgcc-cww5-fp2q), patched in 4.1.6).
+The matching upstream [VEX statements](https://github.com/openai/tunnel-client/releases/download/v0.0.19/tunnel-client-v0.0.19.openvex.json)
+are all `under_investigation`; they do not establish non-impact or remediation.
+Preserve every finding. Do not merge or publish this candidate until a patched
+upstream binary or documented reachability/fix validation clears the findings.
+The four Python audits do not cover the Go binary's dependencies. Offline CLI
+compatibility and verified checksums do not clear this security gate.
+
 ## October 26 candidate review
 
 The 0.3.4 candidate moves both projects to

@@ -27,7 +27,10 @@ def test_ci_and_container_uv_pins_include_the_fixed_certificate_store():
     )
     version = Version(setup["with"]["version"])
     assert version >= Version("0.13.4")
-    assert f"uv=={version}" in (root / "scripts/ci-run.sh").read_text()
+    runner = (root / "scripts/ci-run.sh").read_text()
+    assert f"uv=={version}" in runner
+    native_python = re.search(r"--python (3\.\d+\.\d+)", runner)
+    assert native_python and Version(native_python[1]) >= Version("3.13.18")
     for name in (
         "Dockerfile",
         "experiments/pipecat/Dockerfile",
@@ -44,7 +47,7 @@ def test_ci_and_container_uv_pins_include_the_fixed_certificate_store():
     ):
         source = (root / name).read_text()
         pins = re.findall(r"FROM python:([0-9.]+)-slim@sha256:([a-f0-9]{64})", source)
-        assert pins and all(Version(pin) >= Version("3.13.17") for pin, _ in pins)
+        assert pins and all(Version(pin) >= Version("3.13.18") for pin, _ in pins)
 
 
 def test_pipecat_supports_the_fixed_pillow_without_an_override():

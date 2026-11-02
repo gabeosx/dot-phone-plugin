@@ -13,7 +13,7 @@ container base images, or the services you connect. The Python distribution's
 | OpenAI tunnel-client, downloaded when building the connection container | Apache-2.0 with bundled dependency notices. The image retains the release's `LICENSE`, `NOTICE`, dependency license report, and SPDX inventory in `/usr/local/share/licenses/tunnel-client`. |
 
 Schema licensing comes from the [Agent Plugins licensing policy](https://github.com/agentplugins/agent-plugins-spec/blob/ff8ab5e392cc87bd88d87c060815a87490e51003/LICENSE.md).
-The connection image uses the checksum-verified [tunnel-client v0.0.18 release](https://github.com/openai/tunnel-client/releases/tag/v0.0.18).
+The connection image uses the checksum-verified [tunnel-client v0.0.19 release](https://github.com/openai/tunnel-client/releases/tag/v0.0.19).
 
 ## Installed dependencies
 

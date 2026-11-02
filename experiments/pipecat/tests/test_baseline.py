@@ -1,9 +1,29 @@
+import json
+from unittest.mock import AsyncMock
+
 import pytest
 from loguru import logger
 from pipecat.services.openai.live import llm as live_llm
 
-from bot import MeasuredLiveService
+from bot import DrainingEvalSerializer, MeasuredLiveService
 from run_baseline import run
+
+
+@pytest.mark.parametrize("graceful", [False, True])
+async def test_harness_stop_drains_normal_sessions_and_preserves_explicit_cancel(graceful):
+    from pipecat.frames.frames import CancelWorkerFrame, EndWorkerFrame
+
+    serializer = DrainingEvalSerializer()
+    serializer.graceful_eval_shutdown = graceful
+    serializer.drain_before_end = AsyncMock()
+    frame = await serializer.deserialize(
+        json.dumps({"label": "rtvi-ai", "type": "client-message", "data": {"t": "eval-cancel"}})
+    )
+    assert isinstance(frame, EndWorkerFrame if graceful else CancelWorkerFrame)
+    if graceful:
+        serializer.drain_before_end.assert_awaited_once()
+    else:
+        serializer.drain_before_end.assert_not_awaited()
 
 
 @pytest.fixture(autouse=True)

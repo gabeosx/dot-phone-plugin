@@ -1,6 +1,6 @@
 """Realtime voice with decisions supplied by the authenticated Dots controller.
 
-The direct tool-result and audio truncation hooks are pinned to Pipecat 1.12.0.
+The direct tool-result and audio truncation hooks are pinned to Pipecat 1.14.0.
 This adapter grants no approvals and executes no supervisor actions itself.
 """
 
@@ -168,7 +168,7 @@ class SupervisedRealtimeService(OpenAIRealtimeLLMService):
     def _has_async_tools(self):
         """Use our voice delivery protocol instead of the SDK's chat catch-up prompt.
 
-        Pinned Pipecat 1.12 uses this hook only to compose instructions. Tool
+        Pinned Pipecat uses this hook only to compose instructions. Tool
         cancellation flags remain intact, so lookups still survive interruptions.
         This adapter owns formal tool-result delivery and speaking continuations;
         a chat instruction to answer every arriving result is inappropriate on
@@ -335,6 +335,19 @@ class SupervisedRealtimeService(OpenAIRealtimeLLMService):
         if self.interruption_barrier is not None:
             self.interruption_barrier.observe_frame(frame, direction)
         await super().process_frame(frame, direction)
+
+    async def _handle_function_call_result(self, frame):
+        # Pipecat 1.14 forwards callbacks to Realtime immediately. Controller
+        # delivery already wrote these results to the wire; keep the callback's
+        # local context bookkeeping without replaying it as a new message.
+        # The SDK also marks intermediate updates as seen. An open call must
+        # still accept its final result; only a closed, delivered call is done.
+        if (
+            frame.tool_call_id in self._completed_tool_calls
+            and frame.tool_call_id not in self._open_function_calls
+        ):
+            return
+        await super()._handle_function_call_result(frame)
 
     async def _handle_evt_speech_started(self, event):
         if self.interruption_barrier is None:
@@ -1185,7 +1198,7 @@ class SupervisedRealtimeService(OpenAIRealtimeLLMService):
         ):
             from dots_phone.call_reasoner import reasoning_turn_policy, response_policy
 
-            tools = self.get_llm_adapter().get_llm_invocation_params(self._context)["tools"]
+            tools = (await self.get_llm_adapter().get_llm_invocation_params(self._context))["tools"]
             session_update = payload["type"] == "session.update"
             # The frozen call policy controls VAD and explicit responses alike.
             # Legacy mandatory mode opens the full tools only for a continuation
@@ -1200,7 +1213,7 @@ class SupervisedRealtimeService(OpenAIRealtimeLLMService):
                 )
             )
         if self.lookup_wait.pending and payload["type"] in {"session.update", "response.create"}:
-            tools = self.get_llm_adapter().get_llm_invocation_params(self._context)["tools"]
+            tools = (await self.get_llm_adapter().get_llm_invocation_params(self._context))["tools"]
             target = payload.setdefault(
                 "session" if payload["type"] == "session.update" else "response", {}
             )
@@ -1622,10 +1635,9 @@ class SupervisedRealtimeService(OpenAIRealtimeLLMService):
     async def return_local_tool_result(self, params, result, *, run_llm=False):
         """Settle a control tool now; resume reasoning separately when needed.
 
-        Pipecat's run_llm=False callback updates its local context but does not
-        push that context to Realtime. Waiting for a later push leaves the tool
-        pending remotely and can replay its result during an unrelated turn.
-        Delivery and inference are separate operations in our continuous session.
+        Deliver before the callback, whose SDK retransmission is suppressed for
+        completed calls. Local context bookkeeping and guarded inference remain
+        separate operations, so the result cannot replay during an unrelated turn.
         """
         async with self.delivery_lock:
             call = self.supervisor.store.get("call", self.call_id)
@@ -1680,7 +1692,7 @@ class SupervisedRealtimeService(OpenAIRealtimeLLMService):
         ):
             return
         self.report_rejections += 1
-        tools = self.get_llm_adapter().get_llm_invocation_params(self._context)["tools"]
+        tools = (await self.get_llm_adapter().get_llm_invocation_params(self._context))["tools"]
         if sum(tool.get("name") == "finish_call" for tool in tools) != 1:
             raise Refused("final report tool unavailable")
         if defer_response:

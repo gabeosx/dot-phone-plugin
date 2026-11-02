@@ -1,29 +1,18 @@
 name: offline-acceptance
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 permissions: {contents: read}
 jobs:
   offline:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {fetch-depth: 0}
-      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
-        with: {version: "0.10.6"}
-      - run: uv sync --frozen --extra pipecat --python 3.13
-      - run: uv run --no-sync python -m dots_phone.checks offline
-      - run: uv run --no-sync python scripts/secret_scan.py --history
-      - run: uv run --no-sync python scripts/public_release_audit.py --history --report artifacts/public-source-audit.json
-      - run: node --test experiments/pipecat/tests/*.test.mjs experiments/pipecat/test_automatic_call_worker.mjs
-      - run: uv export --frozen --no-dev --all-extras --no-emit-project --format requirements-txt --output-file artifacts/dependency-requirements.txt
-      - run: uv run --no-sync python scripts/dependency_audit.py --requirements artifacts/dependency-requirements.txt --report artifacts/dependency-audit.json
-      - run: uv run --no-sync python scripts/dependency_audit.py --vulnerability-service osv --requirements artifacts/dependency-requirements.txt --report artifacts/dependency-audit-osv.json
-      - run: uv export --project experiments/pipecat --frozen --no-dev --all-extras --no-emit-project --format requirements-txt --output-file artifacts/experimental-dependency-requirements.txt
-      - run: uv run --no-sync python scripts/dependency_audit.py --requirements artifacts/experimental-dependency-requirements.txt --report artifacts/experimental-dependency-audit.json
-      - run: uv run --no-sync python scripts/dependency_audit.py --vulnerability-service osv --requirements artifacts/experimental-dependency-requirements.txt --report artifacts/experimental-dependency-audit-osv.json
-      - run: docker run --rm --network none --user "$(id -u):$(id -g)" -v "$PWD:/repo:ro" -v "$PWD/artifacts:/report" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git /repo --redact --report-format json --report-path /report/gitleaks.json --no-banner
-      - run: uv build
-      - run: docker compose --profile test run --build --rm --user "$(id -u):$(id -g)" test-runner
-      - run: docker compose -f experiments/pipecat/compose.phone.yaml run --build --rm --no-deps -T tests
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: {version: "0.13.6"}
+      - run: bash scripts/ci.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with: {name: acceptance, path: artifacts/}

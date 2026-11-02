@@ -1,6 +1,6 @@
 """Shared keypad tool contracts for phone sessions and text-only evaluations."""
 
-from pipecat.adapters.schemas.direct_function import tool_options
+from pipecat.adapters.llm.schemas.direct_function import tool_options
 from pipecat.services.llm_service import FunctionCallParams
 
 from dots_phone.service import Refused

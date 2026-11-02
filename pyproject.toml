@@ -1,6 +1,6 @@
 [project]
 name = "dots-phone"
-version = "0.3.3"
+version = "0.3.4"
 description = "Private supervised Dots phone plugin"
 license = "MIT AND Apache-2.0"
 license-files = ["LICENSE", "NOTICE", "vendor/voice_evals/LICENSE", "vendor/agent-plugins-LICENSE"]
@@ -17,18 +17,18 @@ dependencies = [
   "argon2-cffi==25.1.0",
   "httpx==0.28.1",
   "aiohttp==3.14.4",
-  "authlib==1.8.0",
+  "authlib==1.9.2",
   "standardwebhooks==1.1.0",
 ]
 [project.optional-dependencies]
 bws = ["bitwarden-sdk==2.1.0"]
-pipecat = ["pipecat-ai[websocket]==1.12.0"]
+pipecat = ["pipecat-ai[websocket]==1.15.0"]
 deepfilter = ["numpy==2.5.3", "soxr==1.0.0"]
 audio-review = ["faster-whisper==1.2.1"]
 [tool.uv]
-# Pipecat's Pillow<13 bound retains known vulnerabilities. The supported frozen
-# uv/Docker environments use the fixed release; see docs/DEPENDENCY-SECURITY.md.
-override-dependencies = ["pillow==13.0.0"]
+# Pipecat 1.15 supports Pillow 13. Keep the security-reviewed exact pin without
+# overriding upstream requirements; see docs/DEPENDENCY-SECURITY.md.
+constraint-dependencies = ["pillow==13.0.0"]
 [dependency-groups]
 dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff==0.16.10", "respx==0.23.1", "pip-audit==2.9.0", "audioop-lts==0.2.2; python_version >= '3.13'", "numpy==2.5.3"]
 [build-system]
@@ -49,7 +49,7 @@ packages = ["dots_phone"]
 include = [
   "/dots_phone", "/plugins/dots-phone", "/tests", "/scripts", "/evals", "/vendor",
   "/experiments/pipecat", "/docs", "/.agents/plugins/marketplace.json", "/.agents/skills/dots-phone-setup", "/.github",
-  "/pyproject.toml", "/uv.lock", "/README.md", "/CONTRIBUTING.md", "/LICENSE", "/NOTICE", "/MILESTONES.md", "/Dockerfile",
+  "/pyproject.toml", "/uv.lock", "/README.md", "/CONTRIBUTING.md", "/AGENTS.md", "/LICENSE", "/NOTICE", "/MILESTONES.md", "/Dockerfile",
   "/compose*.yaml", "/.env.example", "/.dockerignore", "/.gitignore", "/.gitattributes",
 ]
 exclude = ["**/__pycache__/**", "**/.DS_Store", "**/.secrets/**", "**/artifacts/**", "**/*.onnx", "**/*.kef", "**/DeepFilterNet*_onnx.tar.gz", "**/*.wav", "**/*.pcmu", "**/*.pcm", "**/*.whl", "**/*.so", "**/*.dylib", "**/*.pt", "**/*.safetensors"]

@@ -1,12 +1,14 @@
 # Pinned, checksum-verified official binary. Check the latest release when upgrading.
-FROM python:3.13.15-slim@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b AS download
+FROM python:3.13.18-slim@sha256:ae14d4ce8771606477a81446e7ef429edd6762305fc50c84507c1041fa8285d1 AS download
 ARG TARGETARCH
 RUN TARGETARCH="$TARGETARCH" python - <<'PY'
 import hashlib, io, os, pathlib, urllib.request, zipfile
-version = 'v0.0.16'
+version = 'v0.0.19'
 name = f'tunnel-client-{version}-linux-{os.environ["TARGETARCH"]}.zip'
 root = f'https://github.com/openai/tunnel-client/releases/download/{version}/'
-sums = urllib.request.urlopen(root + 'SHA256SUMS.txt').read().decode()
+sums_data = urllib.request.urlopen(root + 'SHA256SUMS.txt').read()
+assert hashlib.sha256(sums_data).hexdigest() == '797c7a4e5790fad997739d5b520a7f4e5530d2d5886badfa1539142e3b048aac'
+sums = sums_data.decode()
 expected = next(line.split()[0] for line in sums.splitlines() if line.split()[-1].lstrip('*') == name)
 data = urllib.request.urlopen(root + name).read()
 assert hashlib.sha256(data).hexdigest() == expected
@@ -20,7 +22,7 @@ with zipfile.ZipFile(io.BytesIO(data)) as archive:
         (license_dir / filename).write_bytes(archive.read(filename))
 os.chmod('/tunnel-client', 0o755)
 PY
-FROM python:3.13.15-slim@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+FROM python:3.13.18-slim@sha256:ae14d4ce8771606477a81446e7ef429edd6762305fc50c84507c1041fa8285d1
 COPY --from=download /tunnel-client /usr/local/bin/tunnel-client
 COPY --from=download /tunnel-licenses /usr/local/share/licenses/tunnel-client
 ENV HOME=/tmp

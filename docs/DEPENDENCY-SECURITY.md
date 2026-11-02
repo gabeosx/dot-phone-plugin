@@ -14,6 +14,17 @@ The targeted lock update changes only Pipecat. Python requirements remain
 compatible with the application's Python 3.12 minimum and the experimental
 project's Python 3.12–3.13 range.
 
+The refreshed local audit blocked nine findings in Authlib 1.8.0 and joserfc 1.7.5.
+The root environment now pins [Authlib 1.9.2](https://docs.authlib.org/en/stable/upgrades/changelog.html#changelog-1-9-2)
+and locks [joserfc 1.7.7](https://github.com/authlib/joserfc/releases/tag/1.7.7),
+which includes the [compact-JWS size guard fix](https://github.com/advisories/GHSA-9pg5-8c7x-5hfx).
+No exceptions were added. The experimental project does not resolve either
+package. Three regression cases reproduce acceptance of an empty signature list
+and splitting oversized attacker-controlled input before checking its limit on
+the old versions, then require rejection on the patched versions. The application's
+existing opaque-token OAuth/PKCE flow remains covered by its tests and installation
+check; no grant, credential or registration policy is relaxed for the update.
+
 Pipecat's new default requires all configured turn-stop strategies to agree.
 The application's manual Realtime path uses the SDK's single external stop
 strategy, not a combined strategy list. Keep the existing committed-turn,

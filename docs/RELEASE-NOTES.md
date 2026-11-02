@@ -9,6 +9,9 @@
   reports now record the installed Pipecat version instead of a stale constant.
 - Pipecat now supports Pillow 13. Replace its upstream requirement override with
   the same exact secure Pillow constraint in both frozen projects.
+- Upgrade Authlib to 1.9.2 and transitive joserfc to 1.7.7 after the local audit
+  blocked nine advisory matches. Add unsigned-JWS and oversized-input regression
+  checks without adding vulnerability exceptions.
 - Pin uv 0.13.6 and Python 3.13.18 containers by verified digests, including the
   corrected certificate stores and Python's compromised-intermediate-key block.
   Update CI's uv pin and managed Python together.

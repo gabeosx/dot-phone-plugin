@@ -6,6 +6,40 @@ use fixed Pillow 13.0.0 with no vulnerability exceptions. Audit results describe
 the advisory feeds at review time and do not promise that dependencies will
 remain free of future findings.
 
+## November 9 candidate review
+
+The root lock now uses Authlib 1.9.5 and joserfc 1.8.0. Authlib 1.9.5
+rejects OpenSSH public keys containing a tab separator as HMAC secrets. A
+regression reproduces acceptance on 1.9.2 and requires rejection after the
+upgrade. The 1.9.3 and 1.9.4 releases also contain OAuth and identity assertion
+fixes. joserfc 1.8.0 tightens public-key import, authenticated data, and JWT
+claim validation, and supports Python 3.11 and newer. The experimental project
+resolves neither dependency. See the
+[Authlib changelog](https://docs.authlib.org/en/stable/upgrades/changelog.html#changelog-1-9-5)
+and [joserfc 1.8.0 release](https://github.com/authlib/joserfc/releases/tag/1.8.0).
+
+The candidate updates the shared CI and digest-pinned uv image to 0.13.7.
+Both projects retain Pipecat 1.15.0 and the Pillow 13.0.0 constraint.
+The Agent Plugins upstream changes are confined to draft 1.1.0 schemas and
+specification. The vendored 1.0.0 files retain their original provenance.
+The Cookbook changes in the vendored harness directory affect its standalone
+lockfile. Dots Phone installs its own frozen dependencies for that code.
+
+The checksum-verified
+[tunnel-client 0.0.20 report](https://github.com/openai/tunnel-client/releases/download/v0.0.20/tunnel-client-v0.0.20-vulnerability-report.json)
+contains 13 matches per Linux client binary, including five high-severity
+matches. The earlier findings persist, and GO-2026-6865 adds another match for
+klauspost/compress 1.18.0. The
+[upstream VEX](https://github.com/openai/tunnel-client/releases/download/v0.0.20/tunnel-client-v0.0.20.openvex.json)
+classifies these findings as under investigation. Keep 0.0.19 in the draft
+and preserve its release blocker until a patched binary or documented
+reachability and fix validation clears the findings.
+
+GitHub Actions run 41465146488 completed the shared CI step successfully.
+GitHub marked the job failed after the hosted runner lost communication
+during cleanup. Independent GitHub acceptance remains required for the
+updated candidate.
+
 ## November 2 candidate review
 
 Both frozen projects now pin [Pipecat 1.15.0](https://github.com/pipecat-ai/pipecat/releases/tag/v1.15.0),

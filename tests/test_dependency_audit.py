@@ -38,7 +38,7 @@ def test_supported_voice_projects_lock_security_fixes_without_exceptions(project
     pipecat = next(package for package in lock["package"] if package["name"] == "pipecat-ai")
     assert Version(pipecat["version"]) >= Version("1.14.0")
     versions = {package["name"]: Version(package["version"]) for package in lock["package"]}
-    for name, minimum in (("authlib", "1.9.2"), ("joserfc", "1.7.7")):
+    for name, minimum in (("authlib", "1.9.5"), ("joserfc", "1.8.0")):
         if name in versions:
             assert versions[name] >= Version(minimum)
     assert json.loads((root / "scripts/dependency_exceptions.json").read_text()) == []

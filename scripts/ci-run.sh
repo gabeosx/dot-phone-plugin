@@ -11,10 +11,10 @@ docker compose version >/dev/null
 mkdir -p artifacts
 
 # Match setup-uv in CI even when the developer has a newer uv installed.
-if [[ "$(uv --version)" == "uv 0.13.6"* ]]; then
+if [[ "$(uv --version)" == "uv 0.13.7"* ]]; then
   UV=(uv)
 else
-  UV=(uvx --from uv==0.13.6 uv)
+  UV=(uvx --from uv==0.13.7 uv)
 fi
 # GitHub's ubuntu-latest runner is x86_64. Exercise the same image platform on Macs.
 export DOCKER_DEFAULT_PLATFORM=linux/amd64

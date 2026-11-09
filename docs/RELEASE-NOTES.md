@@ -14,22 +14,17 @@
 - Pin uv 0.13.7 and Python 3.13.18 containers by verified digests, including the
   corrected certificate stores and Python's compromised-intermediate-key block.
   Update CI's uv pin and managed Python together.
-- Update the connection binary to tunnel-client 0.0.19, checking the pinned
-  checksum manifest before checking each platform archive. Existing static-key
-  deployments retain their authentication configuration.
+- Build the connection binary from the checksum-pinned tunnel-client 0.0.20
+  runtime source with patched Go module locks. The runtime supports the existing
+  static-key Compose configuration and bundles licenses for its linked modules.
 - Refresh immutable GitHub Action pins to checkout 7.0.1, setup-uv 10.3.3 and
   upload-artifact 7.0.2 for the hosted Ubuntu runner.
 - Record the vendored voice harness's official upstream revision and retained
   Dots Phone finalization-timeout adaptation in the third-party notice.
 - Run GitHub CI for pull requests and main pushes, avoiding duplicate feature
   branch push and pull-request runs. Every push still uses the full local gate.
-- This candidate is not a published release. Applicable model-backed acoustic and
-  installation validation must pass before publication. No provider calls or
-  production changes are authorized by the scheduled maintenance job.
-- The tunnel-client 0.0.19 security report has unresolved dependency findings,
-  including high-severity matches in both Linux client binaries. Merge and release
-  remain blocked pending a patched binary or documented security validation; see
-  [dependency security](DEPENDENCY-SECURITY.md#november-2-candidate-review).
+- Require release validation for the rebuilt tunnel runtime, isolated installation,
+  and synthetic voice behavior. See [dependency security](DEPENDENCY-SECURITY.md).
 
 - Require the full shared CI suite locally before every push; install the
   repository pre-push hook and see [maintenance](DEPENDENCY-MAINTENANCE.md).

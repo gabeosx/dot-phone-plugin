@@ -24,6 +24,7 @@ export DOTS_PHONE_CI_PROJECT="$project"
 cleanup() {
   docker compose -p "${project}-base" -f compose.yaml -f scripts/compose.ci-base.yaml down --remove-orphans >/dev/null 2>&1 || true
   docker compose -p "${project}-pipecat" -f experiments/pipecat/compose.phone.yaml -f scripts/compose.ci-pipecat.yaml down --remove-orphans >/dev/null 2>&1 || true
+  docker image rm "${project}-tunnel:local" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 # Linked worktrees store their Git metadata outside the checkout. Preserve that
@@ -43,6 +44,11 @@ node --test experiments/pipecat/tests/*.test.mjs experiments/pipecat/test_automa
 "${UV[@]}" run --no-sync python scripts/dependency_audit.py --vulnerability-service osv --requirements artifacts/experimental-dependency-requirements.txt --report artifacts/experimental-dependency-audit-osv.json
 docker run --rm --network none --user "$(id -u):$(id -g)" -v "$PWD:/repo:ro" -v "$git_common:$git_common:ro" -v "$PWD/artifacts:/report" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git /repo --redact --report-format json --report-path /report/gitleaks.json --no-banner
 "${UV[@]}" build
+docker build -t "${project}-tunnel:local" -f experiments/pipecat/Dockerfile.tunnel experiments/pipecat
+docker run --rm --network none "${project}-tunnel:local" run --help > artifacts/tunnel-runtime-help.txt
+for flag in control-plane.tunnel-id control-plane.api-key mcp.server-url health.listen-addr mcp.oauth-trusted-origin harpoon.allow-plaintext-http harpoon.hosts-include-regex; do
+  grep -Fq -- "--$flag" artifacts/tunnel-runtime-help.txt
+done
 docker compose -p "${project}-base" -f compose.yaml -f scripts/compose.ci-base.yaml --profile test run --build --rm --user "$(id -u):$(id -g)" test-runner
 docker compose -p "${project}-pipecat" -f experiments/pipecat/compose.phone.yaml -f scripts/compose.ci-pipecat.yaml run --build --rm --no-deps -T tests
 echo "All local CI checks passed."

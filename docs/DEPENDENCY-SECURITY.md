@@ -6,6 +6,27 @@ use fixed Pillow 13.0.0 with no vulnerability exceptions. Audit results describe
 the advisory feeds at review time and do not promise that dependencies will
 remain free of future findings.
 
+## Patched tunnel runtime
+
+The connection image builds the official 0.0.20 runtime source export from
+commit `c2144b0904980bcbae2636cdca4f4167e9818e0b`. The archive digest and Go
+compiler image digest are pinned in the Dockerfile. Dots Phone checks in its
+reviewed Go module locks and compiles with network access disabled after module
+verification. The runtime uses the existing static-key Compose flags.
+
+The upstream full client findings below remain part of the record. The narrow
+runtime drops the full client's affected compress, go-jose, chi, and x/crypto
+modules. Its upstream report has four matches across x/net, OpenTelemetry,
+and OpenTelemetry SDK. The new locks resolve x/net 0.62.0 and OpenTelemetry
+and its SDK 1.45.0. Both final Linux image binaries passed govulncheck 1.9.0.
+The image retains the upstream notices, every linked module's notices, and
+Go build metadata. See the [upstream report](https://github.com/openai/tunnel-client/releases/download/v0.0.20/tunnel-client-v0.0.20-vulnerability-report.json).
+
+For a release, build both Linux architectures, extract the actual image
+binaries, and scan each with `govulncheck -mode=binary`. Preserve the results
+with each binary's SHA-256 and module metadata. The shared CI also builds the
+tunnel image and checks its Compose flags with networking disabled.
+
 ## November 9 candidate review
 
 The root lock now uses Authlib 1.9.5 and joserfc 1.8.0. Authlib 1.9.5

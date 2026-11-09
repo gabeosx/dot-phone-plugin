@@ -17,6 +17,9 @@
 - Build the connection binary from the checksum-pinned tunnel-client 0.0.20
   runtime source with patched Go module locks. The runtime supports the existing
   static-key Compose configuration and bundles licenses for its linked modules.
+- Disable installed Codex plugins in scoped call workers while retaining the
+  explicitly authorized read-only connector tools. Keep rejecting workers that
+  expose unexpected MCP tools.
 - Refresh immutable GitHub Action pins to checkout 7.0.1, setup-uv 10.3.3 and
   upload-artifact 7.0.2 for the hosted Ubuntu runner.
 - Record the vendored voice harness's official upstream revision and retained

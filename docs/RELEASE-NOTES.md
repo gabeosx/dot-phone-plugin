@@ -9,12 +9,15 @@
   reports now record the installed Pipecat version instead of a stale constant.
 - Pipecat now supports Pillow 13. Replace its upstream requirement override with
   the same exact secure Pillow constraint in both frozen projects.
-- Upgrade Authlib to 1.9.5 and transitive joserfc to 1.8.0. Cover unsigned JWS,
+- Upgrade Authlib to 1.9.8 and transitive joserfc to 1.8.0. Cover unsigned JWS,
   oversized input, and OpenSSH public-key confusion with regression checks.
-- Pin uv 0.13.7 and Python 3.13.18 containers by verified digests, including the
+- Patch OpenTelemetry API to 1.45.2 in both Python locks and OpenTelemetry Go
+  core modules to 1.47.0 in the tunnel runtime. Add regressions for oversized
+  trace metadata and JWE recipient limits.
+- Pin uv 0.13.8 and Python 3.13.18 containers by verified digests, including the
   corrected certificate stores and Python's compromised-intermediate-key block.
   Update CI's uv pin and managed Python together.
-- Build the connection binary from the checksum-pinned tunnel-client 0.0.20
+- Build the connection binary from the checksum-pinned tunnel-client 0.0.21
   runtime source with patched Go module locks. The runtime supports the existing
   static-key Compose configuration and bundles licenses for its linked modules.
 - Disable installed Codex plugins in scoped call workers while retaining the

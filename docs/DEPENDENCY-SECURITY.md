@@ -6,21 +6,68 @@ use fixed Pillow 13.0.0 with no vulnerability exceptions. Audit results describe
 the advisory feeds at review time and do not promise that dependencies will
 remain free of future findings.
 
+## November 16 candidate review
+
+The root environment upgrades Authlib to 1.9.8. The 1.9.6–1.9.8 releases
+reject unsupported key-bound ID-JAG grants, cap JWE recipient lists at 16,
+reject unauthenticated ECDH-1PU encryption modes, and refuse OAuth 1.0 signatures
+from clients without a client secret. The JWE regression accepts a valid
+single-recipient message and rejects 17 independent recipients. It fails against
+the prior Authlib 1.9.5.
+[Authlib changelog](https://docs.authlib.org/en/stable/upgrades/changelog.html#changelog-1-9-8)
+
+Both locks upgrade opentelemetry-api from 1.45.1 to 1.45.2 for
+GHSA-mf5v-w3w3-f6cg. A crafted traceparent inside JSON metadata can reach a
+quadratic regex even when ordinary HTTP headers reject embedded newlines.
+The regression requires oversized metadata to be rejected before regex matching
+and retains a valid remote-context case. It fails on the previous library.
+[OpenTelemetry advisory](https://github.com/open-telemetry/opentelemetry-python/security/advisories/GHSA-mf5v-w3w3-f6cg)
+
+The tunnel runtime source advances to checksum-verified 0.0.21 and Go 1.27.4.
+The official full-client report retains 15 findings per Linux binary. Its
+runtime report retains four, including GHSA-q7gw-24fr-5p69 in OpenTelemetry
+SDK and trace. The prior patched Dots Phone locks used 1.45.0 and are also
+within this new advisory's affected range. All linked OpenTelemetry core modules
+now resolve to 1.47.0, the advisory's first patched version. Preserve upstream
+findings and verify the actual rebuilt binaries for both Linux architectures.
+[Upstream report](https://github.com/openai/tunnel-client/releases/download/v0.0.21/tunnel-client-v0.0.21-vulnerability-report.json)
+[OpenTelemetry Go advisory](https://github.com/advisories/GHSA-q7gw-24fr-5p69)
+
+CI and the uv images pin 0.13.8. Python remains 3.13.18 with refreshed verified
+image digests. Current Action versions, Gitleaks 8.30.1 and DeepFilterNet 0.5.6
+are retained. The Agent Plugins 1.0.0 schemas still match upstream byte for byte.
+The vendored Cookbook directory changed only its standalone lockfile.
+
+Pipecat 1.16.0 was tested in both projects and is deferred. It changes the default
+stream resampler and removes the core SOXR dependency. Even with explicit SOXR
+input selection, five existing media probes detected extra carrier output
+samples after completion or interruption. The tests retain their exact waveform
+and duration requirements. Both frozen projects remain on 1.15.0 with Pillow
+13.0.0. A coordinated output-resampler migration and acoustic validation are
+required before adopting 1.16.0.
+[Pipecat release](https://github.com/pipecat-ai/pipecat/releases/tag/v1.16.0)
+
+Other direct updates remain separate coherent upgrades. The optional Rust
+builder migration to 1.100.0 still requires native ABI and asset validation.
+The release also awaits completion of the six synthetic voice scenarios. The
+previous Realtime credential expired, and the user-authorized replacement setup
+still needs its secure target selection and local destination confirmation.
+
 ## Patched tunnel runtime
 
-The connection image builds the official 0.0.20 runtime source export from
-commit `c2144b0904980bcbae2636cdca4f4167e9818e0b`. The archive digest and Go
+The connection image builds the official 0.0.21 runtime source export from
+commit `714f2d67844b660af25754f1d19b0360b346b13b`. The archive digest and Go
 compiler image digest are pinned in the Dockerfile. Dots Phone checks in its
 reviewed Go module locks and compiles with network access disabled after module
 verification. The runtime uses the existing static-key Compose flags.
 
 The upstream full client findings below remain part of the record. The narrow
 runtime drops the full client's affected compress, go-jose, chi, and x/crypto
-modules. Its upstream report has four matches across x/net, OpenTelemetry,
-and OpenTelemetry SDK. The new locks resolve x/net 0.62.0 and OpenTelemetry
-and its SDK 1.45.0. Both final Linux image binaries passed govulncheck 1.9.0.
+modules. Its upstream runtime report retains OpenTelemetry findings. The new locks
+resolve x/net 0.62.0 and OpenTelemetry core modules and SDK 1.47.0. Both final
+Linux image binaries passed govulncheck 1.9.0.
 The image retains the upstream notices, every linked module's notices, and
-Go build metadata. See the [upstream report](https://github.com/openai/tunnel-client/releases/download/v0.0.20/tunnel-client-v0.0.20-vulnerability-report.json).
+Go build metadata. See the [upstream report](https://github.com/openai/tunnel-client/releases/download/v0.0.21/tunnel-client-v0.0.21-vulnerability-report.json).
 
 For a release, build both Linux architectures, extract the actual image
 binaries, and scan each with `govulncheck -mode=binary`. Preserve the results

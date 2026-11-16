@@ -13,7 +13,7 @@ container base images, or the services you connect. The Python distribution's
 | OpenAI tunnel-client runtime, built from the upstream source archive | Apache-2.0 with bundled dependency notices. The image retains upstream `LICENSE` and `NOTICE`, linked module licenses, and the binary's module versions and checksums in `/usr/local/share/licenses/tunnel-client`. |
 
 Schema licensing comes from the [Agent Plugins licensing policy](https://github.com/agentplugins/agent-plugins-spec/blob/ff8ab5e392cc87bd88d87c060815a87490e51003/LICENSE.md).
-The connection image builds the [v0.0.20 runtime source export](https://github.com/openai/tunnel-client/releases/tag/v0.0.20) from upstream commit `c2144b0904980bcbae2636cdca4f4167e9818e0b`. Dots Phone supplies the patched module locks in `experiments/pipecat/tunnel-runtime`.
+The connection image builds the [v0.0.21 runtime source export](https://github.com/openai/tunnel-client/releases/tag/v0.0.21) from upstream commit `714f2d67844b660af25754f1d19b0360b346b13b`. Dots Phone supplies the patched module locks in `experiments/pipecat/tunnel-runtime`.
 
 ## Installed dependencies
 

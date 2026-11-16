@@ -1,5 +1,7 @@
 """Reject unsigned JWS data and oversized compact input before copying segments."""
 
+from copy import deepcopy
+
 import pytest
 from authlib.jose import JsonWebSignature
 from authlib.jose.errors import JoseError
@@ -38,3 +40,19 @@ def test_ssh_public_key_with_tab_separator_cannot_be_an_hmac_secret():
     assert load_ssh_public_key(tab_separated_key) == public_key
     with pytest.raises(ValueError):
         OctKey.import_key(tab_separated_key)
+
+
+def test_jwe_recipient_limit_rejects_excessive_recipient_list():
+    from authlib.jose import JsonWebEncryption
+
+    verifier = JsonWebEncryption()
+    key = b"fictional-jwe-regression-key".ljust(32, b".")
+    payload = b'{"synthetic":true}'
+    signed = verifier.serialize_json(
+        {"protected": {"alg": "A256KW", "enc": "A256GCM"}}, payload, key
+    )
+    assert verifier.deserialize_json(signed, key)["payload"] == payload
+    signed["recipients"] = [deepcopy(signed["recipients"][0]) for _ in range(17)]
+
+    with pytest.raises(ValueError, match="Too many recipients"):
+        verifier.deserialize_json(signed, key)

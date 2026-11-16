@@ -1,5 +1,5 @@
 # Build the official runtime source with the reviewed Go dependency locks.
-FROM --platform=$BUILDPLATFORM python:3.13.18-slim@sha256:ae14d4ce8771606477a81446e7ef429edd6762305fc50c84507c1041fa8285d1 AS source
+FROM --platform=$BUILDPLATFORM python:3.13.18-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90 AS source
 RUN python - <<'PY'
 import hashlib
 import io
@@ -7,21 +7,21 @@ import tarfile
 import urllib.request
 
 url = (
-    "https://github.com/openai/tunnel-client/releases/download/v0.0.20/"
-    "tunnel-client-runtime-source-v0.0.20.tar.gz"
+    "https://github.com/openai/tunnel-client/releases/download/v0.0.21/"
+    "tunnel-client-runtime-source-v0.0.21.tar.gz"
 )
 with urllib.request.urlopen(url, timeout=60) as response:
     archive = response.read()
-if hashlib.sha256(archive).hexdigest() != "56ed0162eda7c04e6a656e30565c75c10474dfd74eacd7171da45917cfde57a8":
+if hashlib.sha256(archive).hexdigest() != "6dc0a82093a4d8d0f40ff3fcc3f0e7e20fc40d1492780f80089a2ccb95d0df18":
     raise ValueError("Tunnel runtime source checksum does not match")
 with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as source:
     source.extractall("/src", filter="data")
 PY
 
-FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine@sha256:f2c872bcee949b7be9c490efd02b48a8a2fbf947cdf533f1c58525ec9d8170fd AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.4-alpine@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280 AS build
 ENV GOTOOLCHAIN=local
 WORKDIR /src
-COPY --from=source /src/tunnel-client-runtime-source-v0.0.20/ ./
+COPY --from=source /src/tunnel-client-runtime-source-v0.0.21/ ./
 COPY tunnel-runtime/go.mod tunnel-runtime/go.sum ./
 RUN go mod download && go mod verify
 ARG TARGETOS
@@ -31,7 +31,7 @@ set -eu
 export CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH"
 mkdir -p /out/licenses/modules
 go build -mod=readonly -trimpath -buildvcs=false \
-    -ldflags '-X github.com/openai/tunnel-client/pkg/version.Flavor=runtime -X github.com/openai/tunnel-client/pkg/version.GitSHA=c2144b0904980bcbae2636cdca4f4167e9818e0b' \
+    -ldflags '-X github.com/openai/tunnel-client/pkg/version.Flavor=runtime -X github.com/openai/tunnel-client/pkg/version.GitSHA=714f2d67844b660af25754f1d19b0360b346b13b' \
     -o /out/tunnel-client ./cmd/client-runtime
 cp LICENSE NOTICE /out/licenses/
 go version -m /out/tunnel-client > /out/licenses/build-info.txt
@@ -54,7 +54,7 @@ sort -u /tmp/modules | while read -r module version directory; do
 done
 SH
 
-FROM python:3.13.18-slim@sha256:ae14d4ce8771606477a81446e7ef429edd6762305fc50c84507c1041fa8285d1
+FROM python:3.13.18-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
 COPY --from=build /out/tunnel-client /usr/local/bin/tunnel-client
 COPY --from=build /out/licenses /usr/local/share/licenses/tunnel-client
 ENV HOME=/tmp

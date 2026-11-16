@@ -117,7 +117,7 @@ def call_mail_instructions(call):
 def call_mail_tools(llm, hang_up):
     import json
 
-    from pipecat.adapters.schemas.direct_function import tool_options
+    from pipecat.adapters.llm.schemas.direct_function import tool_options
     from pipecat.services.llm_service import FunctionCallParams
 
     @tool_options(cancel_on_interruption=False)

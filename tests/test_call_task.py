@@ -410,7 +410,7 @@ def test_factory_uses_identical_deployed_tools_and_settings_for_task_data(servic
     assert detector.type == "semantic_vad" and detector.eagerness == "high"
     assert "can check in without" not in prompt
     assert "to the client supervisor" not in prompt
-    from pipecat.adapters.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
+    from pipecat.adapters.llm.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
 
     tools = OpenAIRealtimeLLMAdapter().to_provider_tools_format(context.tools)
     result = next(tool for tool in tools if tool["name"] == "finish_call")

@@ -38,7 +38,6 @@ from dots_phone.service import PhoneService
 from dots_phone.store import Store
 from loguru import logger
 from pipecat.evals.scenario import EvalScenarioFile
-from pipecat.evals.serializer import EvalSerializer
 from pipecat.evals.session import EvalSession, EvalSessionParams
 from pipecat.evals.transport import EvalTransport, EvalTransportParams
 from pipecat.frames.frames import EndFrame
@@ -51,7 +50,7 @@ from pipecat.services.openai.realtime import events
 from pipecat.workers.runner import WorkerRunner
 
 from audio_metrics import AudioCapture, pcm_fields
-from bot import Evidence
+from bot import DrainingEvalSerializer, Evidence
 from run_baseline import unused_port
 
 LINES = [
@@ -414,7 +413,7 @@ async def run(key, root, policy, delay):
         host="127.0.0.1",
         port=port,
         params=EvalTransportParams(
-            audio_in_enabled=True, audio_out_enabled=True, serializer=EvalSerializer()
+            audio_in_enabled=True, audio_out_enabled=True, serializer=DrainingEvalSerializer()
         ),
     )
     llm = CapturedRealtime(

@@ -10,10 +10,10 @@ container base images, or the services you connect. The Python distribution's
 | Owner-password parameter choices adapted from Agent Call | MIT; the original copyright and permission notice are in [NOTICE](../NOTICE). |
 | OpenAI voice evaluation harness in `vendor/voice_evals` | MIT; [upstream license](../vendor/voice_evals/LICENSE) and the original notice in [NOTICE](../NOTICE). |
 | Agent Plugins 1.0.0 manifest and MCP schemas | Apache-2.0; [license copy](../vendor/agent-plugins-LICENSE) and source attribution in [NOTICE](../NOTICE). Both files are unchanged from upstream commit `ff8ab5e392cc87bd88d87c060815a87490e51003`. |
-| OpenAI tunnel-client, downloaded when building the connection container | Apache-2.0 with bundled dependency notices. The image retains the release's `LICENSE`, `NOTICE`, dependency license report, and SPDX inventory in `/usr/local/share/licenses/tunnel-client`. |
+| OpenAI tunnel-client runtime, built from the upstream source archive | Apache-2.0 with bundled dependency notices. The image retains upstream `LICENSE` and `NOTICE`, linked module licenses, and the binary's module versions and checksums in `/usr/local/share/licenses/tunnel-client`. |
 
 Schema licensing comes from the [Agent Plugins licensing policy](https://github.com/agentplugins/agent-plugins-spec/blob/ff8ab5e392cc87bd88d87c060815a87490e51003/LICENSE.md).
-The connection image uses the checksum-verified [tunnel-client v0.0.16 release](https://github.com/openai/tunnel-client/releases/tag/v0.0.16).
+The connection image builds the [v0.0.21 runtime source export](https://github.com/openai/tunnel-client/releases/tag/v0.0.21) from upstream commit `714f2d67844b660af25754f1d19b0360b346b13b`. Dots Phone supplies the patched module locks in `experiments/pipecat/tunnel-runtime`.
 
 ## Installed dependencies
 

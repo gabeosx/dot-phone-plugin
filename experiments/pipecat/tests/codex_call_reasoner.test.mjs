@@ -254,6 +254,22 @@ test('supplied-facts-only scope disables connected tools even when the installat
   assert.equal(selectedConfig['apps.mail_app.enabled'],false);
   agent.close();
 });
+test('call workers disable bundled plugin tools and retain an explicitly approved read tool',async()=>{
+  const agent=new CodexCallAgent(new Session(),'/tmp',{createSession:config=>{
+    const session=new Session();
+    const fresh=session.freshWorker.bind(session);
+    session.freshWorker=async(...args)=>({...await fresh(...args),mcpServers:[
+      {name:'bundled_executor',tools:config['features.plugins']===false?[]:['run']},
+    ]});
+    return session;
+  }});
+  try {
+    await agent.initialize();
+    const client=await agent.worker(request());
+    assert.deepEqual(client.sourceCapabilities.tool_names,['mail.read']);
+    assert.equal(client.audit.other_mcp_tools,0);
+  } finally {agent.close();}
+});
 test('unexpected non-app MCP tools refuse a call worker before inference',async()=>{
   const agent=new CodexCallAgent(new Session(),'/tmp',{createSession:()=>{
     const session=new Session();const fresh=session.freshWorker.bind(session);

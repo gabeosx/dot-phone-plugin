@@ -34,6 +34,12 @@ LICENSE.md; the schemas and upstream repository have no additional NOTICE file.
 
 Official OpenAI voice evaluation harness, vendored under vendor/voice_evals:
 
+Source: https://github.com/openai/openai-cookbook
+Upstream commit: a0709e05a54d8dd1c4d9be3fc0a41526c3496c39
+Upstream path: examples/audio/duplex_voice_agent_evaluation
+Dots Phone retains a local finalization-timeout adaptation in
+assistants/frontend/assistant.py (15 seconds instead of upstream 5 seconds).
+
 MIT License
 
 Copyright (c) 2025 OpenAI

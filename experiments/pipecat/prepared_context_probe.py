@@ -19,7 +19,6 @@ from pathlib import Path
 import yaml
 from loguru import logger
 from pipecat.evals.scenario import EvalScenarioFile
-from pipecat.evals.serializer import EvalSerializer
 from pipecat.evals.session import EvalSession, EvalSessionParams
 from pipecat.evals.transport import EvalTransport, EvalTransportParams
 from pipecat.frames.frames import EndFrame, LLMRunFrame
@@ -32,7 +31,7 @@ from pipecat.services.openai.realtime import events
 from pipecat.workers.runner import WorkerRunner
 
 from audio_metrics import AudioCapture, pcm_fields
-from bot import Evidence
+from bot import DrainingEvalSerializer, Evidence
 from realtime_probe import MeasuredRealtime
 from run_baseline import unused_port
 from run_live import read_key
@@ -190,11 +189,12 @@ async def bridge_lookup(directory, slot, evidence):
 
 
 def build_probe(key, evidence, port, directory, slot):
+    serializer = DrainingEvalSerializer()
     transport = EvalTransport(
         host="127.0.0.1",
         port=port,
         params=EvalTransportParams(
-            audio_in_enabled=True, audio_out_enabled=True, serializer=EvalSerializer()
+            audio_in_enabled=True, audio_out_enabled=True, serializer=serializer
         ),
     )
     llm = ProbeRealtime(
@@ -216,6 +216,7 @@ def build_probe(key, evidence, port, directory, slot):
             ),
         ),
     )
+    serializer.drain_before_end = llm.drain_delegations
     booking_expiry = time.monotonic() + 180
 
     async def prepared_booking(params: FunctionCallParams):

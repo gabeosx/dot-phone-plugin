@@ -686,7 +686,7 @@ async def test_carrier_builder_registers_account_tools_once_with_actual_sdk(
         assert llm._context is context
         assert llm._settings.session_properties.tools is context.tools
         assert all(llm.has_function(name) for name in names)
-        from pipecat.adapters.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
+        from pipecat.adapters.llm.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
 
         schema = OpenAIRealtimeLLMAdapter().to_provider_tools_format(context.tools)
         verification = next(t for t in schema if t["name"] == "enter_verification_fact")

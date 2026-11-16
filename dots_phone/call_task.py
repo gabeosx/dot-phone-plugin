@@ -295,8 +295,8 @@ def task_conclusion(call, report, entries):
 def task_tools(
     llm, *, source_tools=True, external_sources=False, host_sources=False, reasoner=False
 ):
-    from pipecat.adapters.schemas.direct_function import tool_options
-    from pipecat.adapters.schemas.function_schema import FunctionSchema
+    from pipecat.adapters.llm.schemas.direct_function import tool_options
+    from pipecat.adapters.llm.schemas.function_schema import FunctionSchema
     from pipecat.services.llm_service import FunctionCallParams
 
     from dots_phone.ivr_test_mode import tools as test_tools

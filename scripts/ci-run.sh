@@ -22,7 +22,7 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 project="dots-ci-$$"
 export DOTS_PHONE_CI_PROJECT="$project"
 cleanup() {
-  docker compose -p "${project}-base" -f compose.yaml -f scripts/compose.ci-base.yaml down --remove-orphans >/dev/null 2>&1 || true
+  docker compose -p "${project}-base" -f compose.yaml -f scripts/compose.ci-base.yaml --profile test down --remove-orphans >/dev/null 2>&1 || true
   docker compose -p "${project}-pipecat" -f experiments/pipecat/compose.phone.yaml -f scripts/compose.ci-pipecat.yaml down --remove-orphans >/dev/null 2>&1 || true
   docker image rm "${project}-tunnel:local" >/dev/null 2>&1 || true
 }

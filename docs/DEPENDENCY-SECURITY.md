@@ -49,9 +49,7 @@ required before adopting 1.16.0.
 
 Other direct updates remain separate coherent upgrades. The optional Rust
 builder migration to 1.100.0 still requires native ABI and asset validation.
-The release also awaits completion of the six synthetic voice scenarios. The
-previous Realtime credential expired, and the user-authorized replacement setup
-still needs its secure target selection and local destination confirmation.
+Required synthetic voice validation remains incomplete and blocks release.
 
 ## Patched tunnel runtime
 

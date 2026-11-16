@@ -32,6 +32,8 @@
 - Require release validation for the rebuilt tunnel runtime, isolated installation,
   and synthetic voice behavior. See [dependency security](DEPENDENCY-SECURITY.md).
 
+- Reclaim test-profile Compose networks after CI so repeated local validation
+  can continue to allocate isolated networks.
 - Require the full shared CI suite locally before every push; install the
   repository pre-push hook and see [maintenance](DEPENDENCY-MAINTENANCE.md).
 - Add weekly dependency discovery and validation-gated maintenance releases.

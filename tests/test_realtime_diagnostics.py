@@ -246,8 +246,19 @@ async def test_wire_ack_cancelled_response_and_recovery_preserve_input_and_playo
 ):
     pipeline = audio_pipeline
     model, carrier, llm = pipeline.model, pipeline.carrier, pipeline.llm
+    # Finish initial context setup and its wire acknowledgement before changing
+    # the provider configuration. A late startup update would replace this ack.
+    await eventually(
+        lambda: (
+            llm._context is not None
+            and not llm._llm_needs_conversation_setup
+            and model.incoming.empty()
+        )
+    )
     acknowledged = copy.deepcopy(
-        next(event["session"] for event in model.sent if event["type"] == "session.update")
+        next(
+            event["session"] for event in reversed(model.sent) if event["type"] == "session.update"
+        )
     )
     acknowledged["audio"]["input"]["turn_detection"].update(
         threshold=0.65, interrupt_response=True, create_response=True

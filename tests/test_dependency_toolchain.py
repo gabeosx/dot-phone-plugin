@@ -25,6 +25,7 @@ def test_ci_and_container_uv_pins_include_the_fixed_certificate_store():
         for step in workflow["jobs"]["offline"]["steps"]
         if step.get("uses", "").startswith("astral-sh/setup-uv@")
     )
+    assert setup["with"]["require-checksums"] is True
     version = Version(setup["with"]["version"])
     assert version >= Version("0.13.4")
     runner = (root / "scripts/ci-run.sh").read_text()

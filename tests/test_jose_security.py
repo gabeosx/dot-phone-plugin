@@ -56,3 +56,23 @@ def test_jwe_recipient_limit_rejects_excessive_recipient_list():
 
     with pytest.raises(ValueError, match="Too many recipients"):
         verifier.deserialize_json(signed, key)
+
+
+def test_registration_rejects_private_jwks_before_key_import(monkeypatch):
+    from authlib.oauth2.rfc7591.claims import ClientMetadataClaims
+    from joserfc.errors import InvalidClaimError
+    from joserfc.jwk import KeySet, RSAKey
+
+    key = RSAKey.generate_key(2048, private=True)
+    public_jwks = {"keys": [key.as_dict(private=False)]}
+    ClientMetadataClaims({"jwks": public_jwks}, {}).validate_jwks()
+    private_key = key.as_dict(private=True)
+    minimal_private_key = {name: private_key[name] for name in ("kty", "n", "e", "d")}
+
+    def refuse_private_key_import(*args, **kwargs):
+        raise AssertionError("Private registration key reached key import")
+
+    monkeypatch.setattr(KeySet, "import_key_set", refuse_private_key_import)
+    for value in (private_key, minimal_private_key):
+        with pytest.raises(InvalidClaimError, match="jwks"):
+            ClientMetadataClaims({"jwks": {"keys": [value]}}, {}).validate_jwks()

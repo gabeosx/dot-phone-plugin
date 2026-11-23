@@ -6,6 +6,50 @@ use fixed Pillow 13.0.0 with no vulnerability exceptions. Audit results describe
 the advisory feeds at review time and do not promise that dependencies will
 remain free of future findings.
 
+## November 23 candidate review
+
+Authlib advances to 1.9.10. The 1.9.9 release rejects confidential clients
+attempting authentication with only a client ID; 1.9.10 rejects private keys
+in dynamic-registration JWKS before expensive RSA import. A regression accepts
+a public key and rejects both complete and minimal private keys before import.
+It reproduces the missing early guard on 1.9.8.
+[Authlib changelog](https://docs.authlib.org/en/stable/upgrades/changelog.html#changelog-1-9-10)
+
+PyYAML advances to 6.0.4, which fixes exponential YAML merge-key expansion and
+updates its wheel builds to libyaml 0.2.6. A bounded skill-frontmatter fixture
+checks that nested repeated aliases do not multiply intermediate mapping entries.
+The regression fails on 6.0.3. Standard Webhooks advances to 1.3.0 for binary
+payload signatures and robust parsing of rotated signature headers. Its regression
+checks an independent HMAC and a valid signature following a malformed entry;
+it fails on 1.1.0. These releases support Python 3.10 or newer, within this
+project's Python 3.12+ requirement.
+[PyYAML release](https://github.com/yaml/pyyaml/releases/tag/6.0.4)
+[Standard Webhooks release](https://github.com/standard-webhooks/standard-webhooks/releases/tag/v1.3.0)
+
+CI and container stages pin checksum-verified uv 0.13.9. The setup-uv Action
+advances to immutable 10.4.0 and requires a known checksum before installation.
+Both Linux x86_64 uv archives were checked against the Action's bundled manifest
+and official release digests. Both Python locks were regenerated together; the
+experimental lock has no affected packages and remains byte-identical.
+[uv release](https://github.com/astral-sh/uv/releases/tag/0.13.9)
+[setup-uv release](https://github.com/astral-sh/setup-uv/releases/tag/v10.4.0)
+
+Pipecat 1.17.0 was evaluated in both projects and remains deferred. Even with
+explicit SOXR input resampling, five existing media tests still detect excess
+carrier output after completion or interruption. The protocol probes pass but
+do not replace these waveform checks. Both frozen projects retain Pipecat 1.15.0
+and Pillow 13.0.0 without an override or security exception. Adopting the new
+resampler requires a coordinated compatibility change and acoustic validation.
+[Pipecat release](https://github.com/pipecat-ai/pipecat/releases/tag/v1.17.0)
+
+The official tunnel 0.0.21 report and VEX remain unchanged: 15 full-client and
+four runtime findings per Linux architecture, with upstream investigation still
+open. Both actual rebuilt Dots Phone runtime binaries pass govulncheck 1.9.0;
+the upstream report is retained separately. Python 3.13.18, Go 1.27.4, the other
+Action pins, Gitleaks, DeepFilterNet, and the vendored schemas remain current.
+Other direct updates remain separate coherent upgrades. Synthetic voice and
+final merge-commit validation remain required before release.
+
 ## November 16 candidate review
 
 The root environment upgrades Authlib to 1.9.8. The 1.9.6–1.9.8 releases

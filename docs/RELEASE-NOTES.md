@@ -9,12 +9,15 @@
   reports now record the installed Pipecat version instead of a stale constant.
 - Pipecat now supports Pillow 13. Replace its upstream requirement override with
   the same exact secure Pillow constraint in both frozen projects.
-- Upgrade Authlib to 1.9.8 and transitive joserfc to 1.8.0. Cover unsigned JWS,
-  oversized input, and OpenSSH public-key confusion with regression checks.
+- Upgrade Authlib to 1.9.10 and transitive joserfc to 1.8.0. Cover unsigned JWS,
+  oversized input, OpenSSH public-key confusion, and private registration keys
+  with regression checks.
+- Upgrade PyYAML to 6.0.4 to bound repeated merge-key expansion and Standard
+  Webhooks to 1.3.0 for binary payload signatures and signature rotation parsing.
 - Patch OpenTelemetry API to 1.45.2 in both Python locks and OpenTelemetry Go
   core modules to 1.47.0 in the tunnel runtime. Add regressions for oversized
   trace metadata and JWE recipient limits.
-- Pin uv 0.13.8 and Python 3.13.18 containers by verified digests, including the
+- Pin uv 0.13.9 and Python 3.13.18 containers by verified digests, including the
   corrected certificate stores and Python's compromised-intermediate-key block.
   Update CI's uv pin and managed Python together.
 - Build the connection binary from the checksum-pinned tunnel-client 0.0.21
@@ -23,8 +26,9 @@
 - Disable installed Codex plugins in scoped call workers while retaining the
   explicitly authorized read-only connector tools. Keep rejecting workers that
   expose unexpected MCP tools.
-- Refresh immutable GitHub Action pins to checkout 7.0.1, setup-uv 10.3.3 and
-  upload-artifact 7.0.2 for the hosted Ubuntu runner.
+- Refresh immutable GitHub Action pins to checkout 7.0.1, setup-uv 10.4.0 and
+  upload-artifact 7.0.2 for the hosted Ubuntu runner. Require a known uv
+  checksum before installation.
 - Record the vendored voice harness's official upstream revision and retained
   Dots Phone finalization-timeout adaptation in the third-party notice.
 - Run GitHub CI for pull requests and main pushes, avoiding duplicate feature

@@ -102,8 +102,9 @@ export function callSourceTools(request,available) {
   return {allowed:available.filter(name=>selected.includes(name)),selection:selected.length?'explicit':'none'};
 }
 export function workerConfig(schemas,allowed,{config:inherited={},apps=[],skillPaths=[]}={}) {
+  // Bundled plugin servers can load outside the top-level MCP configuration.
   const config={'apps._default.enabled':false,'features.shell_tool':false,
-    'features.multi_agent':false,'web_search':'disabled','features.fast_mode':false,'service_tier':'default'};
+    'features.multi_agent':false,'features.plugins':false,'web_search':'disabled','features.fast_mode':false,'service_tier':'default'};
   const key=value=>{if(!/^[a-zA-Z0-9_@-]+$/.test(value))throw Error('unsupported_worker_config_identity');return value;};
   for(const id of new Set([...apps.map(a=>a.id),...Object.keys(inherited.apps??{}).filter(id=>id!=='_default')]))
     config[`apps.${key(id)}.enabled`]=false;

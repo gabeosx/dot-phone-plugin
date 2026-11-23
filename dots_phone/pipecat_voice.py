@@ -821,7 +821,7 @@ class PipecatTelephony:
         purpose_first = False
         external_turns = bool(realtime and self._external_turns_enabled)
         if realtime:
-            from pipecat.adapters.schemas.direct_function import tool_options
+            from pipecat.adapters.llm.schemas.direct_function import tool_options
 
             from dots_phone.pipecat_realtime import SupervisedRealtimeService
             from dots_phone.task_voice import realtime_session_properties

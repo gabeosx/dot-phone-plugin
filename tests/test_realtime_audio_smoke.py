@@ -508,7 +508,7 @@ async def test_persistent_eval_client_binds_preparation_and_turns_to_one_call(
 async def test_audio_harness_keeps_reporting_and_consultation_with_matching_local_controls(
     service, brief, tmp_path, policy
 ):
-    from pipecat.adapters.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
+    from pipecat.adapters.llm.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
 
     from dots_phone.realtime_audio_smoke import Trace, build_voice
     from tests.test_call_reasoner import prepare

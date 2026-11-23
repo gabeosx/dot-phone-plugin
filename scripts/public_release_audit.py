@@ -41,6 +41,7 @@ PUBLIC_FILES = {
     "Dockerfile",
     "README.md",
     "CONTRIBUTING.md",
+    "AGENTS.md",
     "LICENSE",
     "NOTICE",
     "MILESTONES.md",

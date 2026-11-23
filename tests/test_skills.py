@@ -51,7 +51,7 @@ def test_authenticated_import_reconciles_every_resource_digest(settings):
         catalog = request("skills/list")["result"]
         assert len(catalog["skills"]) == 1 and "nextCursor" not in catalog
         skill = catalog["skills"][0]
-        assert skill["frontmatter"]["metadata"]["version"] == "0.3.3"
+        assert skill["frontmatter"]["metadata"]["version"] == "0.3.4"
         assert request("skills/get", {"uri": skill["uri"]})["result"]["skill"] == skill
         assert {r["uri"] for r in skill["resources"]} == {
             SKILL_URI,
@@ -194,7 +194,7 @@ def test_workflow_fallback_is_authenticated_read_only_and_never_creates_calls(se
         assert not result.get("isError")
         workflow = result["structuredContent"]
         assert workflow == SkillCatalog().workflow()
-        assert workflow["version"] == "0.3.3"
+        assert workflow["version"] == "0.3.4"
         assert workflow["origin"] == "static_packaged_phone_skill"
         for supplied in [{"call_id": "a" * 32}, {"path": "/run/secrets/runtime"}]:
             body["params"]["arguments"] = supplied
@@ -204,3 +204,25 @@ def test_workflow_fallback_is_authenticated_read_only_and_never_creates_calls(se
         assert not app.state.service.store.all("call")
         assert not app.state.service.store.all("approval")
     assert not provider.dials
+
+
+def test_skill_frontmatter_merge_fanout_stays_bounded(tmp_path, monkeypatch):
+    import yaml
+
+    sizes = []
+    flatten = yaml.SafeLoader.flatten_mapping
+
+    def observe(loader, node):
+        flatten(loader, node)
+        sizes.append(len(node.value))
+
+    monkeypatch.setattr(yaml.SafeLoader, "flatten_mapping", observe)
+    lines = ["base: &n0 {description: Fixture}"]
+    for level in range(1, 9):
+        lines.append(f"n{level}: &n{level} {{<<: [*n{level - 1}, *n{level - 1}]}}")
+    lines.extend(["<<: *n8", "name: dots-phone"])
+    (tmp_path / "SKILL.md").write_text("---\n" + "\n".join(lines) + "\n---\nFixture.\n")
+    catalog = SkillCatalog(tmp_path)
+    assert catalog.skill["frontmatter"]["description"] == "Fixture"
+    # The small source must not multiply alias entries while flattening merges.
+    assert max(sizes) <= 12

@@ -1,28 +1,62 @@
-# Pinned, checksum-verified official binary. Check the latest release when upgrading.
-FROM python:3.13.15-slim@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b AS download
-ARG TARGETARCH
-RUN TARGETARCH="$TARGETARCH" python - <<'PY'
-import hashlib, io, os, pathlib, urllib.request, zipfile
-version = 'v0.0.16'
-name = f'tunnel-client-{version}-linux-{os.environ["TARGETARCH"]}.zip'
-root = f'https://github.com/openai/tunnel-client/releases/download/{version}/'
-sums = urllib.request.urlopen(root + 'SHA256SUMS.txt').read().decode()
-expected = next(line.split()[0] for line in sums.splitlines() if line.split()[-1].lstrip('*') == name)
-data = urllib.request.urlopen(root + name).read()
-assert hashlib.sha256(data).hexdigest() == expected
-with zipfile.ZipFile(io.BytesIO(data)) as archive:
-    member = next(p for p in archive.namelist() if p.split('/')[-1] == 'tunnel-client')
-    with open('/tunnel-client', 'wb') as out:
-        out.write(archive.read(member))
-    license_dir = pathlib.Path('/tunnel-licenses')
-    license_dir.mkdir()
-    for filename in ('LICENSE', 'NOTICE', name.removesuffix('.zip') + '-licenses.txt', name.removesuffix('.zip') + '.spdx.json'):
-        (license_dir / filename).write_bytes(archive.read(filename))
-os.chmod('/tunnel-client', 0o755)
+# Build the official runtime source with the reviewed Go dependency locks.
+FROM --platform=$BUILDPLATFORM python:3.13.18-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90 AS source
+RUN python - <<'PY'
+import hashlib
+import io
+import tarfile
+import urllib.request
+
+url = (
+    "https://github.com/openai/tunnel-client/releases/download/v0.0.21/"
+    "tunnel-client-runtime-source-v0.0.21.tar.gz"
+)
+with urllib.request.urlopen(url, timeout=60) as response:
+    archive = response.read()
+if hashlib.sha256(archive).hexdigest() != "6dc0a82093a4d8d0f40ff3fcc3f0e7e20fc40d1492780f80089a2ccb95d0df18":
+    raise ValueError("Tunnel runtime source checksum does not match")
+with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as source:
+    source.extractall("/src", filter="data")
 PY
-FROM python:3.13.15-slim@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
-COPY --from=download /tunnel-client /usr/local/bin/tunnel-client
-COPY --from=download /tunnel-licenses /usr/local/share/licenses/tunnel-client
+
+FROM --platform=$BUILDPLATFORM golang:1.27.4-alpine@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280 AS build
+ENV GOTOOLCHAIN=local
+WORKDIR /src
+COPY --from=source /src/tunnel-client-runtime-source-v0.0.21/ ./
+COPY tunnel-runtime/go.mod tunnel-runtime/go.sum ./
+RUN go mod download && go mod verify
+ARG TARGETOS
+ARG TARGETARCH
+RUN --network=none <<'SH'
+set -eu
+export CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH"
+mkdir -p /out/licenses/modules
+go build -mod=readonly -trimpath -buildvcs=false \
+    -ldflags '-X github.com/openai/tunnel-client/pkg/version.Flavor=runtime -X github.com/openai/tunnel-client/pkg/version.GitSHA=714f2d67844b660af25754f1d19b0360b346b13b' \
+    -o /out/tunnel-client ./cmd/client-runtime
+cp LICENSE NOTICE /out/licenses/
+go version -m /out/tunnel-client > /out/licenses/build-info.txt
+go list -mod=readonly -deps -f '{{with .Module}}{{if not .Main}}{{.Path}} {{.Version}} {{.Dir}}{{end}}{{end}}' \
+    ./cmd/client-runtime > /tmp/modules
+sort -u /tmp/modules | while read -r module version directory; do
+    [ -n "$module" ] || continue
+    destination="/out/licenses/modules/$module@$version"
+    mkdir -p "$destination"
+    found=false
+    for notice in "$directory"/LICENSE* "$directory"/LICENCE* "$directory"/COPYING* "$directory"/NOTICE*; do
+        [ -f "$notice" ] || continue
+        cp "$notice" "$destination/"
+        found=true
+    done
+    if [ "$found" = false ]; then
+        printf 'Missing license for %s %s\n' "$module" "$version" >&2
+        exit 1
+    fi
+done
+SH
+
+FROM python:3.13.18-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+COPY --from=build /out/tunnel-client /usr/local/bin/tunnel-client
+COPY --from=build /out/licenses /usr/local/share/licenses/tunnel-client
 ENV HOME=/tmp
 USER 10001:10001
 ENTRYPOINT ["tunnel-client"]

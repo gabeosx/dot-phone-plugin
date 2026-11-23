@@ -6,6 +6,7 @@ import json
 import os
 import re
 import stat
+from importlib.metadata import version
 from pathlib import Path
 
 from loguru import logger
@@ -103,7 +104,7 @@ async def evaluate(key, scenario, directory, *, record_audio=False):
     confirmed = evidence.closed and evidence.final_seconds is not None
     report.update(
         mode="live_synthetic_audio",
-        pipecat_version="1.12.0",
+        pipecat_version=version("pipecat-ai"),
         state="completed" if confirmed else "unconfirmed",
         eval_passed=result.passed if result else False,
         eval_failures=[str(f) for f in result.failures] if result else [],

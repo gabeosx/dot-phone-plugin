@@ -1,0 +1,3 @@
+services:
+  tests:
+    image: ${DOTS_PHONE_CI_PROJECT:?CI project required}-pipecat:local

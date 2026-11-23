@@ -1,3 +1,49 @@
+# Unreleased — v0.3.4 candidate
+
+- Upgrade both supported projects from Pipecat 1.12.0 to 1.15.0. Await the new
+  async adapter API and prevent SDK callback frames from replaying a tool result
+  the controller already delivered. Keep the existing exactly-once source, silent
+  wait, report feedback and signed-carrier regressions.
+- Adapt the evaluation harness's automatic cancellation to a drained normal
+  shutdown, preserving explicit cancellation tests and final usage checks. Probe
+  reports now record the installed Pipecat version instead of a stale constant.
+- Pipecat now supports Pillow 13. Replace its upstream requirement override with
+  the same exact secure Pillow constraint in both frozen projects.
+- Upgrade Authlib to 1.9.10 and transitive joserfc to 1.8.0. Cover unsigned JWS,
+  oversized input, OpenSSH public-key confusion, and private registration keys
+  with regression checks.
+- Upgrade PyYAML to 6.0.4 to bound repeated merge-key expansion and Standard
+  Webhooks to 1.3.0 for binary payload signatures and signature rotation parsing.
+- Patch OpenTelemetry API to 1.45.2 in both Python locks and OpenTelemetry Go
+  core modules to 1.47.0 in the tunnel runtime. Add regressions for oversized
+  trace metadata and JWE recipient limits.
+- Pin uv 0.13.9 and Python 3.13.18 containers by verified digests, including the
+  corrected certificate stores and Python's compromised-intermediate-key block.
+  Update CI's uv pin and managed Python together.
+- Build the connection binary from the checksum-pinned tunnel-client 0.0.21
+  runtime source with patched Go module locks. The runtime supports the existing
+  static-key Compose configuration and bundles licenses for its linked modules.
+- Disable installed Codex plugins in scoped call workers while retaining the
+  explicitly authorized read-only connector tools. Keep rejecting workers that
+  expose unexpected MCP tools.
+- Refresh immutable GitHub Action pins to checkout 7.0.1, setup-uv 10.4.0 and
+  upload-artifact 7.0.2 for the hosted Ubuntu runner. Require a known uv
+  checksum before installation.
+- Record the vendored voice harness's official upstream revision and retained
+  Dots Phone finalization-timeout adaptation in the third-party notice.
+- Run GitHub CI for pull requests and main pushes, avoiding duplicate feature
+  branch push and pull-request runs. Every push still uses the full local gate.
+- Require release validation for the rebuilt tunnel runtime, isolated installation,
+  and synthetic voice behavior. See [dependency security](DEPENDENCY-SECURITY.md).
+
+- Reclaim test-profile Compose networks after CI so repeated local validation
+  can continue to allocate isolated networks.
+- Require the full shared CI suite locally before every push; install the
+  repository pre-push hook and see [maintenance](DEPENDENCY-MAINTENANCE.md).
+- Add weekly dependency discovery and validation-gated maintenance releases.
+- Update transitive filelock to 4.2.1 in both lockfiles to resolve three security
+  advisories; see [dependency security](DEPENDENCY-SECURITY.md).
+
 # Dots Phone v0.3.3
 
 Experimental, self-hosted preview.

@@ -114,7 +114,7 @@ def tools(llm, call=None):
         call = store.get("call", llm.call_id) if store is not None else None
     if not call or not call.get("brief", {}).get("stop_on_human", False):
         return []
-    from pipecat.adapters.schemas.function_schema import FunctionSchema
+    from pipecat.adapters.llm.schemas.function_schema import FunctionSchema
 
     async def stop(params):
         args = params.arguments

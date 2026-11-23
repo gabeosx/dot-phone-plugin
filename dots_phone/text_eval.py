@@ -167,9 +167,9 @@ class TextToolRuntime:
         self.tools = []
 
     def prepare_listen_first(self, context):
-        from pipecat.adapters.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
+        from pipecat.adapters.llm.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
 
-        self.tools = OpenAIRealtimeLLMAdapter().get_llm_invocation_params(context)["tools"]
+        self.tools = OpenAIRealtimeLLMAdapter().from_standard_tools(context.tools) or []
 
     async def return_local_tool_result(self, params, result, *, run_llm=False):
         self.continue_response |= run_llm
@@ -313,7 +313,7 @@ def build_runtime(
     response_policy="direct_with_codex",
     voice_effort="medium",
 ):
-    from pipecat.adapters.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
+    from pipecat.adapters.llm.services.open_ai_realtime_adapter import OpenAIRealtimeLLMAdapter
 
     from dots_phone.task_voice import create_task_voice
 

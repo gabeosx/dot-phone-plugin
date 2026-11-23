@@ -232,3 +232,35 @@ async def test_dns_mixed_private_public_is_rejected(monkeypatch):
     monkeypatch.setattr(asyncio.get_running_loop(), "getaddrinfo", resolve)
     with pytest.raises(Refused, match="public"):
         await PublicResolver().resolve("receiver.example")
+
+
+def test_webhook_binary_signature_and_rotation_header():
+    import hashlib
+    import hmac
+    from datetime import UTC, datetime
+
+    secret = b"s" * 32
+    hook = Webhook("whsec_" + base64.b64encode(secret).decode())
+    body = b'{"value":"\xff"}'
+    timestamp = datetime.now(UTC)
+    message_id = "fixture-binary"
+    expected = (
+        "v1,"
+        + base64.b64encode(
+            hmac.new(
+                secret,
+                f"{message_id}.{int(timestamp.timestamp())}.".encode() + body,
+                hashlib.sha256,
+            ).digest()
+        ).decode()
+    )
+    assert hook.sign(message_id, timestamp, body) == expected
+    headers = {
+        "webhook-id": message_id,
+        "webhook-timestamp": str(int(timestamp.timestamp())),
+        "webhook-signature": "malformed " + expected,
+    }
+    # verify authenticates before returning decoded JSON; use valid JSON here.
+    valid_body = b'{"value":"fixture"}'
+    headers["webhook-signature"] = "malformed " + hook.sign(message_id, timestamp, valid_body)
+    assert hook.verify(valid_body, headers) == {"value": "fixture"}
